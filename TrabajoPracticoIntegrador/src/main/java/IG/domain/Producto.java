@@ -1,4 +1,6 @@
-package IG.domain;
+package main.java.IG.domain;
+
+import main.java.IG.domain.Constants.ProductoConstants;
 
 public class Producto {
     private Integer id;
@@ -29,7 +31,7 @@ public class Producto {
     }
 
     public void setId(Integer id) {
-        if (id == null || id <= 0) {
+        if (id == null || id < ProductoConstants.PRODUCTO_ID_MIN) {
             throw new IllegalArgumentException("El id no puede ser nulo y debe ser mayor a cero.");
         }
         this.id = id;
@@ -43,7 +45,7 @@ public class Producto {
         if (descripcion == null || descripcion.trim().isEmpty()) {
             throw new IllegalArgumentException("La descripción no puede ser nula ni vacía.");
         }
-        if (descripcion.length() > 150) {
+        if (descripcion.length() > ProductoConstants.PRODUCTO_DESCRIPCION_MAX_LENGTH) {
             throw new IllegalArgumentException("La descripción no puede tener más de 150 caracteres.");
         }
         this.descripcion = descripcion;
@@ -62,9 +64,10 @@ public class Producto {
     }
 
     public void setStock(Double stock) {
-        if (stock == null || stock <= 0) {
-            throw new IllegalArgumentException("El stock debe ser mayor a cero.");
+        if (stock == null || stock <= ProductoConstants.PRODUCTO_STOCK_MIN) {
+            throw new IllegalArgumentException("El stock debe ser mayor o igual a cero.");
         }
+
         this.stock = stock;
     }
 }
