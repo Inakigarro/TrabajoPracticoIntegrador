@@ -1,4 +1,4 @@
-package IG.domain;
+package main.java.IG.domain;
 
 public class Nave {
     private Integer id;
