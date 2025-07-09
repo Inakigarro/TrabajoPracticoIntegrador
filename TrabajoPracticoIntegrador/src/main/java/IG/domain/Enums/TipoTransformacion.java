@@ -3,7 +3,7 @@ package IG.domain.Enums;
 public enum TipoTransformacion {
     SINDEFINIR("Sin definir"),
     REENVASADO("Revenasado"),
-    FRACCIONAMIENTO("Fraccionamiento"),;
+    FRACCIONAMIENTO("Fraccionamiento");
 
     private final String descripcion;
 
