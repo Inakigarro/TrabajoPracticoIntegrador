@@ -1,4 +1,4 @@
-package main.java.IG.domain;
+package IG.domain;
 
 import main.java.IG.domain.Constants.ProductoConstants;
 
