@@ -64,7 +64,7 @@ public class Producto {
     }
 
     public void setStock(Double stock) {
-        if (stock == null || stock <= ProductoConstants.PRODUCTO_STOCK_MIN) {
+        if (stock == null || stock < ProductoConstants.PRODUCTO_STOCK_MIN) {
             throw new IllegalArgumentException("El stock debe ser mayor o igual a cero.");
         }
 
