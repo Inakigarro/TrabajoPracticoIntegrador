@@ -22,3 +22,29 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+*.bak
+*~
+.DS_Store
+Thumbs.db
+
+# NetBeans
+nbproject/
+build/
+dist/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Swing UI Designer generated files
+*.form
