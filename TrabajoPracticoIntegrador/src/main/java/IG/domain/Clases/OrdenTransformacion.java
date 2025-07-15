@@ -1,4 +1,4 @@
-package IG.domain.Clases;
+package main.java.IG.domain.Clases;
 
 import IG.domain.Enums.TipoTransformacion;
 

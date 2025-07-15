@@ -1,6 +1,6 @@
-package IG.domain.Clases;
+package main.java.IG.domain.Clases;
 
-import IG.domain.Producto;
+import main.java.IG.domain.Clases.Producto;
 
 public class DetalleTransformacion {
     private Producto producto;

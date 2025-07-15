@@ -1,6 +1,4 @@
-package IG.domain.Clases;
-
-import IG.domain.Producto;
+package main.java.IG.domain.Clases;
 
 public class DetalleMovimiento {
     private Producto producto;
