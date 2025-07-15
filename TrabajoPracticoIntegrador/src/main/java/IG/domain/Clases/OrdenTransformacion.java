@@ -13,6 +13,10 @@ public class OrdenTransformacion {
     private List<DetalleTransformacion>detalleTransformacionList;
 
     public OrdenTransformacion() {
+        setId("SIN ID");
+        setTipo(TipoTransformacion.SINDEFINIR);
+        setFecha(LocalDateTime.now());
+        setDetalleTransformacionList(new ArrayList<>());
     }
 
     public OrdenTransformacion(String id, TipoTransformacion tipo, LocalDateTime fecha, List<DetalleTransformacion> detalleTransformacionList) {
@@ -27,6 +31,8 @@ public class OrdenTransformacion {
     }
 
     public void setId(String id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El ID no puede ser nulo.");
         this.id = id;
     }
 
@@ -35,6 +41,10 @@ public class OrdenTransformacion {
     }
 
     public void setTipo(TipoTransformacion tipo) {
+            if (tipo == null) {
+                throw new IllegalArgumentException("El tipo no puede ser nulo.");
+            }
+        }
         this.tipo = tipo;
     }
 
@@ -43,6 +53,9 @@ public class OrdenTransformacion {
     }
 
     public void setFecha(LocalDateTime fecha) {
+        if (fecha == null) {
+            throw new IllegalArgumentException("La fecha no puede ser nula.");
+        }
         this.fecha = fecha;
     }
 
@@ -51,6 +64,9 @@ public class OrdenTransformacion {
     }
 
     public void setDetalleTransformacionList(List<DetalleTransformacion> detalleTransformacionList) {
+        if (detalleTransformacionList == null) {
+            throw new IllegalArgumentException("La lista de detalles no puede ser nula.");
+        }
         this.detalleTransformacionList = detalleTransformacionList;
     }
 

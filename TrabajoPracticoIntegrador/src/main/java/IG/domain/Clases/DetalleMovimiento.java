@@ -1,5 +1,6 @@
 package main.java.IG.domain.Clases;
 
+
 public class DetalleMovimiento {
     private Producto producto;
     private double cantidad;
@@ -7,6 +8,10 @@ public class DetalleMovimiento {
     private boolean esSalida;
 
     public DetalleMovimiento() {
+        this.producto = null;
+        this.cantidad = 0.0;
+        this.ubicacion = null;
+        this.esSalida = true;
     }
 
     public DetalleMovimiento(Producto producto, double cantidad, Ubicacion ubicacion, boolean esSalida) {
@@ -20,7 +25,10 @@ public class DetalleMovimiento {
         return producto;
     }
 
-    public void setProducto(Producto producto) {
+    public void setProducto(main.java.IG.domain.Clases.Producto producto) {
+        if (producto == null) {
+            throw new IllegalArgumentException("El producto no debe ser nulo");
+        }
         this.producto = producto;
     }
 
@@ -29,14 +37,20 @@ public class DetalleMovimiento {
     }
 
     public void setCantidad(double cantidad) {
+        if (cantidad == 0.0) {
+            throw  new IllegalArgumentException("Error. La cantidad debe ser mayor a cero");
+        }
         this.cantidad = cantidad;
     }
 
-    public Ubicacion getUbicacion() {
+    public main.java.IG.domain.Clases.Ubicacion getUbicacion() {
         return ubicacion;
     }
 
-    public void setUbicacion(Ubicacion ubicacion) {
+    public void setUbicacion(main.java.IG.domain.Clases.Ubicacion ubicacion) {
+        if (ubicacion == null) {
+            throw new IllegalArgumentException("La ubicacion no debe ser nula");
+        }
         this.ubicacion = ubicacion;
     }
 

@@ -16,6 +16,11 @@ public class DetalleTransformacion {
     }
 
     public DetalleTransformacion() {
+        this.producto = null;
+        this.cantidad = 0.0;
+        this.ubicacion = null;
+        this.esSalida = true;
+        }
     }
 
     public Producto getProducto() {
@@ -23,6 +28,8 @@ public class DetalleTransformacion {
     }
 
     public void setProducto(Producto producto) {
+    if (producto==null)
+        throw new IllegalArgumentException("El producto no puede ser nulo");
         this.producto = producto;
     }
 
@@ -31,14 +38,18 @@ public class DetalleTransformacion {
     }
 
     public void setCantidad(double cantidad) {
+    if (cantidad == 0.0)
+        throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
         this.cantidad = cantidad;
     }
 
-    public Ubicacion getUbicacion() {
+    public main.java.IG.domain.Clases.Ubicacion getUbicacion() {
         return ubicacion;
     }
 
-    public void setUbicacion(Ubicacion ubicacion) {
+    public void setUbicacion(main.java.IG.domain.Clases.Ubicacion ubicacion) {
+    if (ubicacion==null)
+        throw new IllegalArgumentException("La ubicacion no debe ser nula");
         this.ubicacion = ubicacion;
     }
 
