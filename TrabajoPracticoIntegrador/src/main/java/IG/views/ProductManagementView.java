@@ -41,11 +41,9 @@ public class ProductManagementView extends JFrame {
 
         JButton btnAgregar = new JButton("Agregar Producto");
         JButton btnEliminar = new JButton("Eliminar Seleccionado");
-        //JButton btnGuardar = new JButton("Guardar en archivo");
 
         formPanel.add(btnAgregar);
         formPanel.add(btnEliminar);
-        //formPanel.add(btnGuardar);
 
         JScrollPane scrollPane = new JScrollPane(table);
 
@@ -54,7 +52,6 @@ public class ProductManagementView extends JFrame {
 
         btnAgregar.addActionListener(e -> agregarProducto());
         btnEliminar.addActionListener(e -> eliminarProducto());
-        //btnGuardar.addActionListener(e -> guardarProductosEnArchivo());
     }
 
     private void agregarProducto() {
@@ -89,24 +86,4 @@ public class ProductManagementView extends JFrame {
             JOptionPane.showMessageDialog(this, "Seleccioná una fila para eliminar.");
         }
     }
-
-    /*private void guardarProductosEnArchivo() {
-        try {
-            java.io.FileWriter writer = new java.io.FileWriter("productos.txt");
-
-            for (Producto p : productos) {
-                String linea = p.getId() + ";" + p.getDescripcion() + ";" + p.getUnidadMedida() + ";" + p.getStock();
-                writer.write(linea + "\n");
-            }
-
-            writer.close();
-            JOptionPane.showMessageDialog(this, "Productos guardados en productos.txt");
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al guardar: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }*/
-
-    /*El metodo guardar producto, esta pensado para pasar el producto agregado a un txt o un json para
-    luego persistirlo en la base de datos. Si no es necesario; Borrar.*/
-
 }

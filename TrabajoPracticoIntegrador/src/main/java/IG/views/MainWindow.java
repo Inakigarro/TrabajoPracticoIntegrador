@@ -20,7 +20,6 @@ public class MainWindow extends JFrame {
         JButton btnUbicaciones = new JButton("Gestión de Ubicaciones");
         JButton btnMovimientos = new JButton("Órdenes de Movimiento");
         JButton btnTransformaciones = new JButton("Órdenes de Transformación");
-        JButton btnStock = new JButton("Consulta de Stock");
         JButton btnHistorial = new JButton("Ver Historial de Movimientos");
         JButton btnSalir = new JButton("Salir");
 
@@ -36,7 +35,6 @@ public class MainWindow extends JFrame {
 
         btnMovimientos.addActionListener(e -> JOptionPane.showMessageDialog(this, "Abrir Órdenes de Movimiento"));
         btnTransformaciones.addActionListener(e -> JOptionPane.showMessageDialog(this, "Abrir Órdenes de Transformación"));
-        btnStock.addActionListener(e -> JOptionPane.showMessageDialog(this, "Abrir Consulta de Stock"));
         btnHistorial.addActionListener(e -> JOptionPane.showMessageDialog(this, "Abrir Historial de Movimientos"));
         btnSalir.addActionListener(e -> System.exit(0));
 
@@ -44,7 +42,6 @@ public class MainWindow extends JFrame {
         panel.add(btnUbicaciones);
         panel.add(btnMovimientos);
         panel.add(btnTransformaciones);
-        panel.add(btnStock);
         panel.add(btnHistorial);
         panel.add(btnSalir);
 
