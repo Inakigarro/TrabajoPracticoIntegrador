@@ -1,47 +1,45 @@
 package main.java.IG.domain.Clases;
 
-import IG.domain.Enums.TipoMovimiento;
+import main.java.IG.domain.Enums.TipoMovimiento;
+import main.java.IG.domain.Enums.OrdenMovimientoEstados;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
  public class OrdenMovimiento {
-
-    private String id;
+    private Integer id;
     private TipoMovimiento tipo;
     private LocalDateTime fecha;
-    private String estado;
+    private OrdenMovimientoEstados estado;
     private List<DetalleMovimiento> detalleMovimientoList;
 
      public OrdenMovimiento() {
-         setId("SIN ID");
-         setTipo(TipoMovimiento.SINDEFINIR);
-         setFecha(LocalDateTime.now());
-         setEstado("pendiente");
-         setDetalleMovimientoList(new ArrayList<>());
+        id = 0;
+        tipo = TipoMovimiento.SINDEFINIR;
+        fecha = LocalDateTime.now();
+        estado = OrdenMovimientoEstados.PENDIENTE;
+        detalleMovimientoList = new ArrayList<>();
      }
 
 
-     public OrdenMovimiento(String id, TipoMovimiento tipo, LocalDateTime fecha, String estado) {
-        this.id = id;
-        this.tipo = tipo;
-        this.fecha = fecha;
-        this.estado = estado;
-        this.detalleMovimientoList = new ArrayList<>();
+     public OrdenMovimiento(Integer id, TipoMovimiento tipo, LocalDateTime fecha, OrdenMovimientoEstados estado) {
+        this();
+        this.setId(id);
+        this.setTipo(tipo);
+        this.setFecha(fecha);
+        this.setEstado(estado);
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
-         if (id == null)
+    public void setId(Integer id) {
+         if (id == null || id < 1)
             throw new IllegalArgumentException("El id no puede ser nulo.");
-        }
-        this.id = id;
+
+         this.id = id;
     }
 
     public TipoMovimiento getTipo() {
@@ -49,10 +47,10 @@ import java.util.List;
     }
 
     public void setTipo(TipoMovimiento tipo) {
-        if (tipo == null) {
+        if (tipo == null || tipo == TipoMovimiento.SINDEFINIR)
             throw new IllegalArgumentException("El tipo no puede ser nulo");
-        }
-         this.tipo = tipo;
+
+        this.tipo = tipo;
     }
 
     public LocalDateTime getFecha() {
@@ -60,57 +58,48 @@ import java.util.List;
     }
 
     public void setFecha(LocalDateTime fecha) {
-        if (fecha == null) {
+        if (fecha == null)
             throw new IllegalArgumentException("La fecha no puede ser nula");
-        }
+
      this.fecha = fecha;
     }
 
-    public String getEstado() {
+    public OrdenMovimientoEstados getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(OrdenMovimientoEstados estado) {
         if (estado == null) {
             throw new IllegalArgumentException("El estado no puede ser nulo");
         }
+
         this.estado = estado;
     }
 
     public void agregarDetalle(DetalleMovimiento detalle){
-    detalleMovimientoList.add(detalle);
+        detalleMovimientoList.add(detalle);
     }
 
- public void aprobar() {
-     switch (estado.toLowerCase()) {
-         case "pendiente":
-             estado = "aprobado";
-             break;
-         case "aprobado":
-             throw new IllegalStateException("La orden ya está aprobada.");
-         case "anulado":
-             throw new IllegalStateException("No se puede aprobar una orden anulada.");
-         default:
-             throw new IllegalStateException("Estado no válido: " + estado);
-     }
- }
+    public void aprobar() {
+        this.setEstado(OrdenMovimientoEstados.APROBADO);
+    }
 
  public void ejecutar() {
-     if (estado == null || !estado.equalsIgnoreCase("aprobado")) {
+     if (!estado.equals(OrdenMovimientoEstados.APROBADO))
          throw new IllegalStateException("Solo se puede ejecutar una orden con estado 'aprobado'.");
-     }
 
-     if (detalleMovimientoList == null || detalleMovimientoList.isEmpty()) {
+     if (detalleMovimientoList == null || detalleMovimientoList.isEmpty())
          throw new IllegalStateException("La orden no tiene detalles para ejecutar.");
-     }
 
      for (DetalleMovimiento detalle : detalleMovimientoList) {
-         Producto producto = detalle.getProducto();
+         Producto producto = detalle.getProductoUbicacion().getProducto();
          double cantidad = detalle.getCantidad();
 
-         if (producto == null) {
+         if (producto == null)
              throw new IllegalStateException("Uno de los detalles no tiene producto.");
-         }
+
+         if (producto.getStock() <= 0d)
+                throw new IllegalStateException("El producto no tiene stock.");
 
          if (cantidad <= 0) {
              throw new IllegalStateException("Cantidad inválida en un detalle.");
@@ -118,11 +107,7 @@ import java.util.List;
 
          Double stockActual = producto.getStock();  // necesitas que haya getStock()
 
-         if (stockActual == null) {
-             throw new IllegalStateException("El producto no tiene stock definido.");
-         }
-
-         if (detalle.isEsSalida()) {
+         if (detalle.esSalida()) {
              if (cantidad > stockActual) {
                  throw new IllegalStateException("Stock insuficiente para el producto ID: " + producto.getId());
              }
@@ -132,5 +117,6 @@ import java.util.List;
          }
      }
 
-     estado = "ejecutado";
+     this.setEstado(OrdenMovimientoEstados.PROCESO);
+ }
  }

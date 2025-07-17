@@ -18,7 +18,8 @@ public class Nave {
 
     public void setZonas(List<Zona> zonas) {
         if (zonas==null)
-            throw new IllegalArgumentException("La zona no debe ser nula")
+            throw new IllegalArgumentException("La zona no debe ser nula");
+
         this.zonas = zonas;
     }
 }

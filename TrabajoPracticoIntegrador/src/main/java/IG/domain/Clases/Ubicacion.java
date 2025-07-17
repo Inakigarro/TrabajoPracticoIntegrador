@@ -6,18 +6,18 @@ import java.util.List;
 public class Ubicacion {
     private int nroEstanteria;
     private double capacidadUsada;
-    private List<Producto>productos;
+    private List<ProductoUbicacion> productos;
 
-    public Ubicacion(int nroEstanteria, double capacidadUsada, List<main.java.IG.domain.Clases.Producto> productos) {
-        this.nroEstanteria = nroEstanteria;
-        this.capacidadUsada = capacidadUsada;
-        this.productos = productos;
+    public Ubicacion(int nroEstanteria, double capacidadUsada) {
+        this();
+        setNroEstanteria(nroEstanteria);
+        setCapacidadUsada(capacidadUsada);
     }
 
     public Ubicacion() {
         setNroEstanteria(1);
         setCapacidadUsada(0.0);
-        setProductos(new ArrayList<>());
+        addRangeProductos(new ArrayList<>());
     }
 
     public int getNroEstanteria() {
@@ -42,27 +42,25 @@ public class Ubicacion {
         this.capacidadUsada = capacidadUsada;
     }
 
-    public List<main.java.IG.domain.Clases.Producto> getProductos() {
+    public List<ProductoUbicacion> getProductos() {
         return productos;
     }
 
-    public void setProductos(List<main.java.IG.domain.Clases.Producto> productos) {
-        if (productos == null) {
-            throw new IllegalArgumentException("La lista de productos no puede ser nula.");
-        }
-        this.productos = productos;
+    public void addProducto(ProductoUbicacion producto) {
+        if (producto == null)
+            throw new IllegalArgumentException("El producto no puede ser nulo.");
+
+        this.productos.add(producto);
     }
 
-    //public int calcularCapacidadMaxima(){
-
-    public void almacenarProducto(main.java.IG.domain.Clases.Producto producto) {
-        if (producto == null) {
-            throw new IllegalArgumentException("No se puede almacenar un producto nulo.");
+    public void addRangeProductos(List<ProductoUbicacion> productos) {
+        if (productos == null || productos.isEmpty()) {
+            throw new IllegalArgumentException("La lista de productos no puede ser nula ni vacía.");
         }
-        productos.add(producto);
+        this.productos.addAll(productos);
     }
 
     public boolean estaDisponible() {
-        return 1450d - capacidadUsada > 0;
+        return 1250d - capacidadUsada > 0;
     }
 }

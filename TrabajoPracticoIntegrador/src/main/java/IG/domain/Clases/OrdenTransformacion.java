@@ -31,7 +31,7 @@ public class OrdenTransformacion {
     }
 
     public void setId(String id) {
-        if (id == null) {
+        if (id == null)
             throw new IllegalArgumentException("El ID no puede ser nulo.");
         this.id = id;
     }
@@ -41,10 +41,10 @@ public class OrdenTransformacion {
     }
 
     public void setTipo(TipoTransformacion tipo) {
-            if (tipo == null) {
-                throw new IllegalArgumentException("El tipo no puede ser nulo.");
-            }
+        if (tipo == null) {
+            throw new IllegalArgumentException("El tipo no puede ser nulo.");
         }
+
         this.tipo = tipo;
     }
 
@@ -75,5 +75,4 @@ public class OrdenTransformacion {
     }
 
     //reenvasar
-
 }

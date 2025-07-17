@@ -2,34 +2,27 @@ package main.java.IG.domain.Clases;
 
 
 public class DetalleMovimiento {
-    private Producto producto;
     private double cantidad;
-    private Ubicacion ubicacion;
+    private ProductoUbicacion productoUbicacion;
     private boolean esSalida;
 
     public DetalleMovimiento() {
-        this.producto = null;
         this.cantidad = 0.0;
-        this.ubicacion = null;
         this.esSalida = true;
+        this.productoUbicacion = null;
     }
 
     public DetalleMovimiento(Producto producto, double cantidad, Ubicacion ubicacion, boolean esSalida) {
-        this.producto = producto;
-        this.cantidad = cantidad;
-        this.ubicacion = ubicacion;
-        this.esSalida = esSalida;
+        this.setCantidad(cantidad);
+        this.setEsSalida(esSalida);
     }
 
-    public Producto getProducto() {
-        return producto;
-    }
-
-    public void setProducto(main.java.IG.domain.Clases.Producto producto) {
-        if (producto == null) {
+    public void setProductoUbicacion(ProductoUbicacion productoUbicacion) {
+        if (productoUbicacion == null) {
             throw new IllegalArgumentException("El producto no debe ser nulo");
         }
-        this.producto = producto;
+
+        this.productoUbicacion = productoUbicacion;
     }
 
     public double getCantidad() {
@@ -37,29 +30,33 @@ public class DetalleMovimiento {
     }
 
     public void setCantidad(double cantidad) {
-        if (cantidad == 0.0) {
+        if (cantidad == 0.0)
             throw  new IllegalArgumentException("Error. La cantidad debe ser mayor a cero");
-        }
+
+        // Verificar que la cantidad sea menor o igual al stock del producto.
+        if (cantidad > this.productoUbicacion.getStockProductoUbicacion())
+            throw new IllegalArgumentException("La cantidad no puede ser mayor al stock del producto en la ubicación.");
+
         this.cantidad = cantidad;
     }
 
-    public main.java.IG.domain.Clases.Ubicacion getUbicacion() {
-        return ubicacion;
+    public ProductoUbicacion getProductoUbicacion() {
+        return productoUbicacion;
     }
 
-    public void setUbicacion(main.java.IG.domain.Clases.Ubicacion ubicacion) {
-        if (ubicacion == null) {
+    public void setUbicacion(ProductoUbicacion productoUbicacion) {
+        if (productoUbicacion == null) {
             throw new IllegalArgumentException("La ubicacion no debe ser nula");
         }
-        this.ubicacion = ubicacion;
+
+        this.productoUbicacion = productoUbicacion;
     }
 
-    public boolean isEsSalida() {
+    public boolean esSalida() {
         return esSalida;
     }
 
     public void setEsSalida(boolean esSalida) {
         this.esSalida = esSalida;
     }
-
 }
