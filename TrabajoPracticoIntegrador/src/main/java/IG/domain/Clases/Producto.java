@@ -1,4 +1,4 @@
-package main.java.IG.domain;
+package main.java.IG.domain.Clases;
 
 import main.java.IG.domain.Constants.ProductoConstants;
 
@@ -20,6 +20,7 @@ public class Producto {
             String descripcion,
             String unidadMedida,
             Double stock) {
+        this();
         this.setId(id);
         this.setDescripcion(descripcion);
         this.unidadMedida = unidadMedida;
