@@ -2,6 +2,7 @@ package main.java.IG.domain.Enums;
 
 public enum OrdenMovimientoEstados {
     PENDIENTE("Pendiente"),
+    APROBADO("Aprobado"),
     PROCESO("En Proceso"),
     COMPLETADO("Completado"),
     CANCELADO("Cancelado");

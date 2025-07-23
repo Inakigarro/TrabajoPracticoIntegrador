@@ -1,4 +1,4 @@
-package main.java.IG.domain;
+package main.java.IG.domain.Clases;
 
 import main.java.IG.domain.Constants.ProductoConstants;
 
@@ -20,6 +20,7 @@ public class Producto {
             String descripcion,
             String unidadMedida,
             Double stock) {
+        this();
         this.setId(id);
         this.setDescripcion(descripcion);
         this.unidadMedida = unidadMedida;
@@ -64,7 +65,7 @@ public class Producto {
     }
 
     public void setStock(Double stock) {
-        if (stock == null || stock <= ProductoConstants.PRODUCTO_STOCK_MIN) {
+        if (stock == null || stock < ProductoConstants.PRODUCTO_STOCK_MIN) {
             throw new IllegalArgumentException("El stock debe ser mayor o igual a cero.");
         }
 

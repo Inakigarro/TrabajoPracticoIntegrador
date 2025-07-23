@@ -1,9 +1,9 @@
-package main.java.IG.domain.Enums;
+package IG.domain.Enums;
 
 public enum TipoTransformacion {
     SINDEFINIR("Sin definir"),
     REENVASADO("Revenasado"),
-    FRACCIONAMIENTO("Fraccionamiento"),;
+    FRACCIONAMIENTO("Fraccionamiento");
 
     private final String descripcion;
 
