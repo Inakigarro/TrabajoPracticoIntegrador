@@ -23,19 +23,26 @@ public class MainWindow extends JFrame {
         JButton btnHistorial = new JButton("Ver Historial de Movimientos");
         JButton btnSalir = new JButton("Salir");
 
+        //Si se quiere cerrar la ventana anterior al abrir una nueve, agregar en cada btn this.dispose()
+
         btnProductos.addActionListener((ActionEvent e) -> {
             new ProductManagementView().setVisible(true);
-            this.dispose();
         });
 
         btnUbicaciones.addActionListener(e -> {
             new UbicacionManagementView().setVisible(true);
-            this.dispose();
         });
 
-        btnMovimientos.addActionListener(e -> JOptionPane.showMessageDialog(this, "Abrir Órdenes de Movimiento"));
-        btnTransformaciones.addActionListener(e -> JOptionPane.showMessageDialog(this, "Abrir Órdenes de Transformación"));
-        btnHistorial.addActionListener(e -> JOptionPane.showMessageDialog(this, "Abrir Historial de Movimientos"));
+        btnMovimientos.addActionListener(e -> {
+            new OrdenMovimientoView().setVisible(true);
+        });
+
+        btnTransformaciones.addActionListener(e -> {
+            new OrdenTransformacionView().setVisible(true);
+        });
+
+        btnHistorial.addActionListener(e -> new VerHistorialViews().setVisible(true));
+
         btnSalir.addActionListener(e -> System.exit(0));
 
         panel.add(btnProductos);

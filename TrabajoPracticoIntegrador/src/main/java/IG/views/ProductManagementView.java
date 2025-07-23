@@ -1,6 +1,6 @@
 package main.java.IG.views;
 
-import main.java.IG.domain.Producto;
+import main.java.IG.domain.Clases.Producto;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
