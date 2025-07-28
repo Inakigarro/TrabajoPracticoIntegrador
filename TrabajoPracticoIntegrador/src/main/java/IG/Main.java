@@ -1,6 +1,11 @@
 package main.java.IG;
 
 import main.java.IG.views.MainWindow;
+import main.java.IG.config.ConexionBD;
+import main.java.IG.domain.Clases.Producto;
+import main.java.IG.domain.DAO.ProductoDAO;
+
+import java.sql.Connection;
 
 import javax.swing.*;
 
@@ -16,5 +21,17 @@ public class Main {
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
+
+
+        try (Connection conn = ConexionBD.obtenerConexion()) {
+            ProductoDAO productoDAO = new ProductoDAO(conn);
+
+            Producto nuevo = new Producto(null, "Agua mineral", "Litros", 100.0);
+            productoDAO.insertar(nuevo);
+
+            System.out.println("Producto insertado con ID: " + nuevo.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
