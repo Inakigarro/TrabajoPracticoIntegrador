@@ -2,27 +2,41 @@ package main.java.IG.domain.Clases;
 
 
 public class DetalleMovimiento {
-    private double cantidad;
-    private ProductoUbicacion productoUbicacion;
-    private boolean esSalida;
+    private Integer id;
+    private Double cantidad;
+    private Producto producto;
+    private Boolean esSalida;
+    private Ubicacion ubicacion;
 
     public DetalleMovimiento() {
+        this.id = 0;
         this.cantidad = 0.0;
         this.esSalida = true;
-        this.productoUbicacion = null;
+        this.producto = null;
+    }
+
+    public DetalleMovimiento(Producto producto, double cantidad, boolean esSalida) {
+        this();
+        this.setCantidad(cantidad);
+        this.setEsSalida(esSalida);
+        this.setProducto(producto);
     }
 
     public DetalleMovimiento(Producto producto, double cantidad, Ubicacion ubicacion, boolean esSalida) {
-        this.setCantidad(cantidad);
-        this.setEsSalida(esSalida);
+        this(producto, cantidad, esSalida);
+        this.setUbicacion(ubicacion);
     }
 
-    public void setProductoUbicacion(ProductoUbicacion productoUbicacion) {
-        if (productoUbicacion == null) {
+    public Integer getId() {
+        return id;
+    }
+
+    public void setProducto(Producto producto) {
+        if (producto == null) {
             throw new IllegalArgumentException("El producto no debe ser nulo");
         }
 
-        this.productoUbicacion = productoUbicacion;
+        this.producto = producto;
     }
 
     public double getCantidad() {
@@ -30,26 +44,26 @@ public class DetalleMovimiento {
     }
 
     public void setCantidad(double cantidad) {
-        if (cantidad == 0.0)
+        if (cantidad <= 0.0)
             throw  new IllegalArgumentException("Error. La cantidad debe ser mayor a cero");
-
-        // Verificar que la cantidad sea menor o igual al stock del producto.
-        if (cantidad > this.productoUbicacion.getStockProductoUbicacion())
-            throw new IllegalArgumentException("La cantidad no puede ser mayor al stock del producto en la ubicación.");
 
         this.cantidad = cantidad;
     }
 
-    public ProductoUbicacion getProductoUbicacion() {
-        return productoUbicacion;
+    public Producto getProducto() {
+        return producto;
     }
 
-    public void setUbicacion(ProductoUbicacion productoUbicacion) {
-        if (productoUbicacion == null) {
-            throw new IllegalArgumentException("La ubicacion no debe ser nula");
+    public Ubicacion getUbicacion() {
+        return ubicacion;
+    }
+
+    public void setUbicacion(Ubicacion ubicacion) {
+        if (ubicacion == null) {
+            throw new IllegalArgumentException("Error. La ubicacion no puede ser nula.");
         }
 
-        this.productoUbicacion = productoUbicacion;
+        this.ubicacion = ubicacion;
     }
 
     public boolean esSalida() {
@@ -58,5 +72,10 @@ public class DetalleMovimiento {
 
     public void setEsSalida(boolean esSalida) {
         this.esSalida = esSalida;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%1$d - %2$s - %3$.2f - %4$b", this.id, this.producto, this.cantidad, this.esSalida);
     }
 }

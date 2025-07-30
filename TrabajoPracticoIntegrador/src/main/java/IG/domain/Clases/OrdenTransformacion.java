@@ -20,6 +20,7 @@ public class OrdenTransformacion {
     }
 
     public OrdenTransformacion(String id, TipoTransformacion tipo, LocalDateTime fecha, List<DetalleTransformacion> detalleTransformacionList) {
+        this();
         this.id = id;
         this.tipo = tipo;
         this.fecha = fecha;
@@ -41,7 +42,7 @@ public class OrdenTransformacion {
     }
 
     public void setTipo(TipoTransformacion tipo) {
-        if (tipo == null) {
+        if (tipo == null || tipo == TipoTransformacion.SINDEFINIR) {
             throw new IllegalArgumentException("El tipo no puede ser nulo.");
         }
 
