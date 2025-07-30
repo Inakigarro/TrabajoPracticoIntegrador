@@ -1,5 +1,7 @@
 package main.java.IG.domain.Clases;
 
+import main.java.IG.domain.Clases.*;
+
 public class ProductoUbicacion {
     private Producto producto;
     private Ubicacion ubicacion;
