@@ -1,7 +1,7 @@
 package main.java.IG.domain.Clases;
 
 import main.java.IG.domain.Enums.TipoMovimiento;
-import main.java.IG.domain.Enums.OrdenMovimientoEstados;
+import main.java.IG.domain.Enums.EstadosOrdenes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,18 +11,18 @@ import java.util.List;
     private Integer id;
     private TipoMovimiento tipo;
     private LocalDateTime fecha;
-    private OrdenMovimientoEstados estado;
+    private EstadosOrdenes estado;
     private List<DetalleMovimiento> detalleMovimientoList;
 
     public OrdenMovimiento() {
         id = 0;
         tipo = TipoMovimiento.SINDEFINIR;
         fecha = LocalDateTime.now();
-        estado = OrdenMovimientoEstados.PENDIENTE;
+        estado = EstadosOrdenes.PENDIENTE;
         detalleMovimientoList = new ArrayList<>();
     }
 
-    public OrdenMovimiento(Integer id, TipoMovimiento tipo, LocalDateTime fecha, OrdenMovimientoEstados estado) {
+    public OrdenMovimiento(Integer id, TipoMovimiento tipo, LocalDateTime fecha, EstadosOrdenes estado) {
         this();
         this.setId(id);
         this.setTipo(tipo);
@@ -63,11 +63,11 @@ import java.util.List;
      this.fecha = fecha;
     }
 
-    public OrdenMovimientoEstados getEstado() {
+    public EstadosOrdenes getEstado() {
         return estado;
     }
 
-    public void setEstado(OrdenMovimientoEstados estado) {
+    public void setEstado(EstadosOrdenes estado) {
         if (estado == null) {
             throw new IllegalArgumentException("El estado no puede ser nulo");
         }
@@ -80,11 +80,11 @@ import java.util.List;
     }
 
     public void aprobar() {
-        this.setEstado(OrdenMovimientoEstados.APROBADO);
+        this.setEstado(EstadosOrdenes.APROBADO);
     }
 
      public void ejecutar() {
-         if (!estado.equals(OrdenMovimientoEstados.APROBADO))
+         if (!estado.equals(EstadosOrdenes.APROBADO))
              throw new IllegalStateException("Solo se puede ejecutar una orden con estado 'aprobado'.");
 
          if (detalleMovimientoList == null || detalleMovimientoList.isEmpty())
@@ -116,7 +116,7 @@ import java.util.List;
              }
          }
 
-         this.setEstado(OrdenMovimientoEstados.PROCESO);
+         this.setEstado(EstadosOrdenes.PROCESO);
      }
 
     @Override
