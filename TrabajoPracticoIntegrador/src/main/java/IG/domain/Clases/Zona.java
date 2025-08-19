@@ -1,4 +1,4 @@
-package main.java.IG.domain.Clases;
+package IG.domain.Clases;
 
 import IG.domain.Enums.TipoZona;
 
@@ -7,14 +7,14 @@ import java.util.List;
 
 public class Zona {
     private TipoZona tipo;
-    private List<main.java.IG.domain.Clases.Ubicacion> ubicaciones;
+    private List<Ubicacion> ubicaciones;
 
     public Zona() {
         this.tipo = TipoZona.ENTRADA;
         this.ubicaciones = new ArrayList<>();
     }
 
-    public Zona(TipoZona tipo, List<main.java.IG.domain.Clases.Ubicacion> ubicaciones) {
+    public Zona(TipoZona tipo, List<Ubicacion> ubicaciones) {
         this.tipo = tipo;
         this.ubicaciones = ubicaciones;
     }

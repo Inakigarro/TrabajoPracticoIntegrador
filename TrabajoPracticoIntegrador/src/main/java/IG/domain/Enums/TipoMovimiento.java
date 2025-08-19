@@ -1,10 +1,11 @@
-package main.java.IG.domain.Enums;
+package IG.domain.Enums;
 
 public enum TipoMovimiento {
     SINDEFINIR("Sin definir"),
     INGRESO("Ingreso"),
     EGRESO("Egreso"),
     INTERNO("Interno");
+
 
     private final String descripcion;
 

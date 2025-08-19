@@ -1,6 +1,6 @@
-package main.java.IG.domain.Clases;
+package IG.domain.Clases;
 
-import main.java.IG.domain.Enums.TipoMovimiento;
+import IG.domain.Enums.TipoMovimiento;
 import main.java.IG.domain.Enums.OrdenMovimientoEstados;
 
 import java.time.LocalDateTime;
@@ -76,7 +76,15 @@ import java.util.List;
         this.estado = estado;
     }
 
-    public void agregarDetalle(DetalleMovimiento detalle){
+     public List<DetalleMovimiento> getDetalleMovimientoList() {
+         return detalleMovimientoList;
+     }
+
+     public void setDetalleMovimientoList(List<DetalleMovimiento> detalleMovimientoList) {
+         this.detalleMovimientoList = detalleMovimientoList;
+     }
+
+     public void agregarDetalle(DetalleMovimiento detalle){
         detalleMovimientoList.add(detalle);
     }
 

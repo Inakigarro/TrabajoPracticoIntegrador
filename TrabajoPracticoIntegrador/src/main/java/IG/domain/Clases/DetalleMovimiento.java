@@ -1,4 +1,4 @@
-package main.java.IG.domain.Clases;
+package IG.domain.Clases;
 
 
 public class DetalleMovimiento {
@@ -12,8 +12,9 @@ public class DetalleMovimiento {
         this.productoUbicacion = null;
     }
 
-    public DetalleMovimiento(Producto producto, double cantidad, Ubicacion ubicacion, boolean esSalida) {
-        this.setCantidad(cantidad);
+    public DetalleMovimiento(ProductoUbicacion productoUbicacion, double cantidad, boolean esSalida) {
+        this.setProductoUbicacion(productoUbicacion); // primero seteamos la ubicación
+        this.setCantidad(cantidad);                   // ahora sí podemos validar contra el stock
         this.setEsSalida(esSalida);
     }
 
@@ -30,13 +31,12 @@ public class DetalleMovimiento {
     }
 
     public void setCantidad(double cantidad) {
-        if (cantidad == 0.0)
-            throw  new IllegalArgumentException("Error. La cantidad debe ser mayor a cero");
-
-        // Verificar que la cantidad sea menor o igual al stock del producto.
-        if (cantidad > this.productoUbicacion.getStockProductoUbicacion())
-            throw new IllegalArgumentException("La cantidad no puede ser mayor al stock del producto en la ubicación.");
-
+        // solo validamos contra stock si es una salida
+        if (esSalida && cantidad > productoUbicacion.getStock()) {
+            throw new IllegalArgumentException(
+                    "La cantidad no puede ser mayor al stock del producto en la ubicación."
+            );
+        }
         this.cantidad = cantidad;
     }
 

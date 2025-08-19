@@ -1,11 +1,10 @@
-package main.java.IG.domain.Clases;
-
-import main.java.IG.domain.Clases.*;
+package IG.domain.Clases;
 
 public class ProductoUbicacion {
     private Producto producto;
     private Ubicacion ubicacion;
     private Double stockProductoUbicacion;
+    private int Id;
 
     public ProductoUbicacion() {
         this.producto = null;
@@ -51,5 +50,22 @@ public class ProductoUbicacion {
             throw new IllegalArgumentException("El stock del producto en la ubicación no puede ser nulo ni negativo.");
         }
         this.stockProductoUbicacion = stockProductoUbicacion;
+    }
+
+    // ✅ Método "alias" para set/get stock
+    public double getStock() {
+        return stockProductoUbicacion;
+    }
+
+    public void setStock(Double stock) {
+        setStockProductoUbicacion(stock);
+    }
+
+    public int getId() {
+        return Id;
+    }
+
+    public void setId(int id) {
+        Id = id;
     }
 }

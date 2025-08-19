@@ -1,4 +1,4 @@
-package main.java.IG.domain.Clases;
+package IG.domain.Clases;
 
 public class DetalleTransformacion {
     private Producto producto;
@@ -42,11 +42,11 @@ public class DetalleTransformacion {
         this.cantidad = cantidad;
     }
 
-    public main.java.IG.domain.Clases.Ubicacion getUbicacion() {
+    public Ubicacion getUbicacion() {
         return ubicacion;
     }
 
-    public void setUbicacion(main.java.IG.domain.Clases.Ubicacion ubicacion) {
+    public void setUbicacion(Ubicacion ubicacion) {
         if (ubicacion==null)
             throw new IllegalArgumentException("La ubicacion no debe ser nula");
 
