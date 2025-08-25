@@ -1,6 +1,6 @@
 package main.java.IG.domain.Clases;
 
-import IG.domain.Enums.TipoZona;
+import main.java.IG.domain.Enums.TipoZona;
 
 import java.util.ArrayList;
 import java.util.List;

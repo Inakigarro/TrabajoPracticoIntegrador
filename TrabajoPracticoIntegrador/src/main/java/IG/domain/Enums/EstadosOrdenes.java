@@ -1,6 +1,6 @@
 package main.java.IG.domain.Enums;
 
-public enum OrdenMovimientoEstados {
+public enum EstadosOrdenes {
     PENDIENTE("Pendiente"),
     APROBADO("Aprobado"),
     PROCESO("En Proceso"),
@@ -9,7 +9,7 @@ public enum OrdenMovimientoEstados {
 
     private final String descripcion;
 
-    OrdenMovimientoEstados(String descripcion) {
+    EstadosOrdenes(String descripcion) {
         if (descripcion == null || descripcion.trim().isEmpty()) {
             throw new IllegalArgumentException("La descripción no puede ser nula ni vacía.");
         }

@@ -2,29 +2,42 @@ package main.java.IG.domain.Clases;
 
 import main.java.IG.domain.Constants.ProductoConstants;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Producto {
     private Integer id;
     private String descripcion;
+    private double cantidadUnidad;
     private String unidadMedida;
     private Double stock;
+    private TipoProducto tipoProducto;
+    private List<ProductoUbicacion> ubicaciones;
 
     public Producto() {
         this.id = 0;
         this.descripcion = "";
+        this.cantidadUnidad = 0.0;
         this.unidadMedida = "";
         this.stock = 0.0;
+        this.tipoProducto = null;
+        this.ubicaciones = new ArrayList<ProductoUbicacion>();
     }
 
     public Producto(
             Integer id,
             String descripcion,
+            Double cantidadUnidad,
             String unidadMedida,
-            Double stock) {
+            Double stock,
+            TipoProducto tipoProducto) {
         this();
         this.setId(id);
         this.setDescripcion(descripcion);
+        this.setCantidadUnidad(cantidadUnidad);
         this.unidadMedida = unidadMedida;
         this.setStock(stock);
+        this.setTipoProducto(tipoProducto);
     }
 
     public Integer getId() {
@@ -57,6 +70,17 @@ public class Producto {
         this.unidadMedida = unidadMedida;
     }
 
+    public double getCantidadUnidad() {
+        return cantidadUnidad;
+    }
+
+    public void setCantidadUnidad(double cantidadUnidad) {
+        if (cantidadUnidad <= 0.0) {
+            throw new IllegalArgumentException("La cantidad por unidad debe ser mayor a cero.");
+        }
+        this.cantidadUnidad = cantidadUnidad;
+    }
+
     public Double getStock() {
         return stock;
     }
@@ -67,5 +91,28 @@ public class Producto {
         }
 
         this.stock = stock;
+    }
+
+    public TipoProducto getTipoProducto() {
+        return tipoProducto;
+    }
+
+    public void setTipoProducto(TipoProducto tipoProducto) {
+        if (tipoProducto == null) {
+            throw new IllegalArgumentException("El tipo de producto no puede ser nulo.");
+        }
+
+        this.tipoProducto = tipoProducto;
+
+        if (!this.tipoProducto.existe(this)){
+            this.tipoProducto.addProducto(this);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%1$s - %2$.2f %3$s - %4$s - Stock: %5$.2f",
+                this.descripcion, this.cantidadUnidad, this.unidadMedida,
+                this.tipoProducto, this.stock);
     }
 }

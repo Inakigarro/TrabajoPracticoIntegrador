@@ -1,4 +1,4 @@
-package IG.domain.Enums;
+package main.java.IG.domain.Enums;
 
 public enum TipoTransformacion {
     SINDEFINIR("Sin definir"),
