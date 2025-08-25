@@ -14,7 +14,7 @@ public class Zona {
         this.ubicaciones = new ArrayList<>();
     }
 
-    public Zona(TipoZona tipo, List<Ubicacion> ubicaciones) {
+    public Zona(TipoZona tipo, List<IG.domain.Clases.Ubicacion> ubicaciones) {
         this.tipo = tipo;
         this.ubicaciones = ubicaciones;
     }

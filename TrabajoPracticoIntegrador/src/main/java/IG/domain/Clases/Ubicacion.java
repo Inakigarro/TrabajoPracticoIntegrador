@@ -4,20 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Ubicacion {
-    private int nroEstanteria;
+    private Integer nroEstanteria;
+    private Integer nroNivel;
     private double capacidadUsada;
     private List<ProductoUbicacion> productos;
 
-    public Ubicacion(int nroEstanteria, double capacidadUsada) {
+    public Ubicacion(Integer nroEstanteria, Integer nroNivel) {
         this();
         setNroEstanteria(nroEstanteria);
-        setCapacidadUsada(capacidadUsada);
+        setNroNivel(nroNivel);
     }
 
     public Ubicacion() {
-        setNroEstanteria(1);
-        setCapacidadUsada(0.0);
-        addRangeProductos(new ArrayList<>());
+        this.nroEstanteria = 0;
+        this.nroNivel = 0;
+        this.capacidadUsada = 0.0;
+        this.productos = new ArrayList<>();
     }
 
     public int getNroEstanteria() {
@@ -29,6 +31,17 @@ public class Ubicacion {
             throw new IllegalArgumentException("El número de estantería debe ser mayor a cero.");
         }
         this.nroEstanteria = nroEstanteria;
+    }
+
+    public int getNroNivel() {
+        return nroNivel;
+    }
+
+    public void setNroNivel(int nroNivel) {
+        if (nroNivel <= 0) {
+            throw new IllegalArgumentException("El número de nivel debe ser mayor a cero.");
+        }
+        this.nroNivel = nroNivel;
     }
 
     public double getCapacidadUsada() {
@@ -62,5 +75,15 @@ public class Ubicacion {
 
     public boolean estaDisponible() {
         return 1250d - capacidadUsada > 0;
+    }
+
+    @Override
+    public String toString() {
+        return "Ubicacion{" +
+                "nroEstanteria=" + nroEstanteria +
+                ", nroNivel=" + nroNivel +
+                ", capacidadUsada=" + capacidadUsada +
+                ", productos=" + productos +
+                '}';
     }
 }

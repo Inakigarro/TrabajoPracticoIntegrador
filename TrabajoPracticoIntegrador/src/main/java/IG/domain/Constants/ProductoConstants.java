@@ -1,4 +1,4 @@
-package main.java.IG.domain.Constants;
+package IG.domain.Constants;
 
 public class ProductoConstants {
     public static final Integer PRODUCTO_ID_MIN = 1;
