@@ -1,4 +1,4 @@
-package main.java.IG.domain.Constants;
+package IG.domain.Constants;
 
 public class OrdenMovimientoConstants {
     public static final Integer ORDEN_MOVIMIENTO_ID_MIN = 1;

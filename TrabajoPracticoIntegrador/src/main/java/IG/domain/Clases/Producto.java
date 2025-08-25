@@ -1,6 +1,6 @@
-package main.java.IG.domain.Clases;
+package IG.domain.Clases;
 
-import main.java.IG.domain.Constants.ProductoConstants;
+import IG.domain.Constants.ProductoConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,14 +25,12 @@ public class Producto {
     }
 
     public Producto(
-            Integer id,
             String descripcion,
             Double cantidadUnidad,
             String unidadMedida,
             Double stock,
             TipoProducto tipoProducto) {
         this();
-        this.setId(id);
         this.setDescripcion(descripcion);
         this.setCantidadUnidad(cantidadUnidad);
         this.unidadMedida = unidadMedida;

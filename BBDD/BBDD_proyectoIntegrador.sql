@@ -29,14 +29,21 @@ CREATE TABLE ubicacion (
     FOREIGN KEY (id_zona) REFERENCES zona(id)
 );
 
+-- Tabla Tipo Producto
+Create Table tipo_producto(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    descripcion VARCHAR(255));
+    
 -- Tabla Producto
 CREATE TABLE producto (
     id INT AUTO_INCREMENT PRIMARY KEY,
     descripcion VARCHAR(255),
+    cantidad_unidad DOUBLE DEFAULT 0,
     unidad_medida VARCHAR(50),
     contenido DOUBLE,
     stock DOUBLE DEFAULT 0,
-    stock_disponible DOUBLE DEFAULT 0
+    id_tipo_producto INT,
+    FOREIGN KEY (id_tipo_producto) REFERENCES tipo_producto(id)
 );
 
 -- Tabla ProductoUbicacion

@@ -1,7 +1,7 @@
-package main.java.IG.views;
+package IG.views;
 
-import main.java.IG.domain.Clases.Producto;
-import main.java.IG.domain.Clases.TipoProducto;
+import IG.domain.Clases.Producto;
+import IG.domain.Clases.TipoProducto;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -57,7 +57,6 @@ public class ProductManagementView extends JFrame {
 
     private void agregarProducto() {
         try {
-            Integer id = Integer.parseInt(txtId.getText().trim());
             String descripcion = txtDescripcion.getText().trim();
             String unidad = txtUnidad.getText().trim();
             TipoProducto tipoProducto = new TipoProducto();
@@ -65,9 +64,9 @@ public class ProductManagementView extends JFrame {
 
             double cantidadUnidad = 1.0;
 
-            Producto nuevo = new Producto(id, descripcion, cantidadUnidad, unidad, stock, tipoProducto);
+            Producto nuevo = new Producto(descripcion, cantidadUnidad, unidad, stock, tipoProducto);
             productos.add(nuevo);
-            tableModel.addRow(new Object[]{id, descripcion, unidad, stock, tipoProducto});
+            tableModel.addRow(new Object[]{nuevo.getId(), descripcion, unidad, stock, tipoProducto});
 
             txtId.setText("");
             txtDescripcion.setText("");

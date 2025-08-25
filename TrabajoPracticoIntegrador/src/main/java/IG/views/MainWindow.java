@@ -1,4 +1,4 @@
-package main.java.IG.views;
+package IG.views;
 
 import javax.swing.*;
 import java.awt.*;

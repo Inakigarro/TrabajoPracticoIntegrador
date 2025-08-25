@@ -1,4 +1,4 @@
-package main.java.IG.domain.Constants;
+package IG.domain.Constants;
 
 public class UbicacionConstants {
     public static final Integer UBICACION_ID_MIN = 1;
