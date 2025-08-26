@@ -1,7 +1,7 @@
-package main.java.IG.domain.Clases;
+package IG.domain.Clases;
 
-import main.java.IG.domain.Enums.TipoMovimiento;
-import main.java.IG.domain.Enums.EstadosOrdenes;
+import IG.domain.Enums.TipoMovimiento;
+import IG.domain.Enums.EstadosOrdenes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

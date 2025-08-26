@@ -1,7 +1,9 @@
-package main.java.IG.domain.Clases;
+package IG.domain.Clases;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import IG.domain.Clases.Producto;
 
 public class TipoProducto {
     private Integer id;
@@ -14,9 +16,8 @@ public class TipoProducto {
         this.productos = new ArrayList<Producto>();
     }
 
-    public TipoProducto(Integer id, String descripcion) {
+    public TipoProducto(String descripcion) {
         this();
-        this.setId(id);
         this.setDescripcion(descripcion);
     }
 

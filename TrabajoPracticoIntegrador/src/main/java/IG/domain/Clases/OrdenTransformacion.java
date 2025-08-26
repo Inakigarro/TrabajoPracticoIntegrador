@@ -1,6 +1,6 @@
-package main.java.IG.domain.Clases;
+package IG.domain.Clases;
 
-import main.java.IG.domain.Enums.TipoTransformacion;
+import IG.domain.Enums.TipoTransformacion;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

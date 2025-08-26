@@ -1,7 +1,7 @@
-package main.java.IG.views;
+package IG.views;
 
-import main.java.IG.domain.Enums.EstadosOrdenes;
-import main.java.IG.domain.Enums.TipoTransformacion;
+import IG.domain.Enums.EstadosOrdenes;
+import IG.domain.Enums.TipoTransformacion;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
