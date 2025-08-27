@@ -7,24 +7,24 @@ public class DetalleMovimiento {
     private Producto producto;
     private Boolean esSalida;
     private Ubicacion ubicacion;
+    private OrdenMovimiento ordenMovimiento;
 
     public DetalleMovimiento() {
         this.id = 0;
         this.cantidad = 0.0;
         this.esSalida = true;
-        this.productoUbicacion = null;
+        this.producto = null;
+        this.ubicacion = null;
+        this.ordenMovimiento = null;
     }
 
-    public DetalleMovimiento(Producto producto, double cantidad, boolean esSalida) {
+    public DetalleMovimiento(Producto producto, Ubicacion ubicacion, OrdenMovimiento ordenMovimiento, double cantidad, boolean esSalida) {
         this();
         this.setCantidad(cantidad);
         this.setEsSalida(esSalida);
         this.setProducto(producto);
-    }
-
-    public DetalleMovimiento(Producto producto, double cantidad, Ubicacion ubicacion, boolean esSalida) {
-        this(producto, cantidad, esSalida);
         this.setUbicacion(ubicacion);
+        this.setOrdenMovimiento(ordenMovimiento);
     }
 
     public Integer getId() {
@@ -39,6 +39,10 @@ public class DetalleMovimiento {
         this.producto = producto;
     }
 
+    public Producto getProducto() {
+        return producto;
+    }
+
     public double getCantidad() {
         return cantidad;
     }
@@ -48,10 +52,6 @@ public class DetalleMovimiento {
             throw  new IllegalArgumentException("Error. La cantidad debe ser mayor a cero");
 
         this.cantidad = cantidad;
-    }
-
-    public Producto getProducto() {
-        return producto;
     }
 
     public Ubicacion getUbicacion() {
@@ -64,6 +64,14 @@ public class DetalleMovimiento {
         }
 
         this.ubicacion = ubicacion;
+    }
+
+    public void setOrdenMovimiento(OrdenMovimiento ordenMovimiento) {
+        this.ordenMovimiento = ordenMovimiento;
+    }
+
+    public OrdenMovimiento getOrdenMovimiento() {
+        return ordenMovimiento;
     }
 
     public boolean esSalida() {

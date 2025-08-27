@@ -1,7 +1,6 @@
 package IG.domain.DAO;
 
 import IG.domain.Clases.DetalleMovimiento;
-import IG.domain.Clases.ProductoUbicacion;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -18,7 +17,7 @@ public class DetalleMovimientoDAO {
         String sql = "INSERT INTO detalle_movimiento (id_orden, id_producto_ubicacion, cantidad, es_salida) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, idOrden);
-            stmt.setInt(2, det.getProductoUbicacion().getId());
+            stmt.setInt(2, det.getProducto().getId());
             stmt.setDouble(3, det.getCantidad());
 
             // ⚠️ Asegurate de que tu clase DetalleMovimiento tenga isEsSalida() o getEsSalida()
