@@ -4,22 +4,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Ubicacion {
+    private Integer id;
+    private Zona zona;
     private Integer nroEstanteria;
     private Integer nroNivel;
     private double capacidadUsada;
     private List<ProductoUbicacion> productos;
 
-    public Ubicacion(Integer nroEstanteria, Integer nroNivel) {
+    public Ubicacion(Integer nroEstanteria, Integer nroNivel, Zona zona) {
         this();
         setNroEstanteria(nroEstanteria);
         setNroNivel(nroNivel);
+        setZona(zona);
     }
 
     public Ubicacion() {
+        this.id = 0;
         this.nroEstanteria = 0;
         this.nroNivel = 0;
         this.capacidadUsada = 0.0;
         this.productos = new ArrayList<>();
+    }
+
+    public void setId(Integer id){
+        if (id == null || id < 1)
+            throw new IllegalArgumentException("El id no puede ser nulo.");
+
+        this.id = id;
+    }
+
+    public Integer getId() {
+        return id;
     }
 
     public int getNroEstanteria() {
@@ -53,6 +68,17 @@ public class Ubicacion {
             throw new IllegalArgumentException("La capacidad usada no puede ser negativa.");
         }
         this.capacidadUsada = capacidadUsada;
+    }
+
+    public Zona getZona() {
+        return zona;
+    }
+
+    public void setZona(Zona zona) {
+        if (zona == null) {
+            throw new IllegalArgumentException("La zona no puede ser nula.");
+        }
+        this.zona = zona;
     }
 
     public List<ProductoUbicacion> getProductos() {

@@ -21,11 +21,10 @@ CREATE TABLE zona (
 -- Tabla Ubicacion
 CREATE TABLE ubicacion (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_ubicacion VARCHAR(100) NOT NULL,
-    nivel INT,
-    capacidad_maxima DOUBLE,
+    nro_estanteria INT NOT NULL,
+    nro_nivel INT NOT NULL,
+    capacidad_usada DOUBLE,
     id_zona INT,
-    activa BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (id_zona) REFERENCES zona(id)
 );
 
@@ -59,7 +58,7 @@ CREATE TABLE producto_ubicacion (
 -- Tabla OrdenTransformacion
 CREATE TABLE orden_transformacion (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    fecha DATE,
+    fecha DATETIME NOT NULL,
     estado ENUM('REARMADO', 'FRACCIONAMIENTO')
 );
 
@@ -76,7 +75,7 @@ CREATE TABLE detalle_transformacion (
 -- Tabla OrdenMovimiento
 CREATE TABLE orden_movimiento (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    fecha DATE,
+    fecha DATETIME NOT NULL,
     tipo ENUM('INGRESO', 'EGRESO', 'INTERNO'),
     estado ENUM('PENDIENTE', 'ANULADA', 'EN_CURSO', 'COMPLETADA', 'CANCELADA')
 );
@@ -87,10 +86,9 @@ CREATE TABLE detalle_movimiento (
     id_producto INT,
     cantidad DOUBLE,
     id_orden_movimiento INT,
-    id_ubicacion_origen INT,
-    id_ubicacion_destino INT,
+    id_ubicacion INT,
+    es_salida BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (id_producto) REFERENCES producto(id),
     FOREIGN KEY (id_orden_movimiento) REFERENCES orden_movimiento(id),
-    FOREIGN KEY (id_ubicacion_origen) REFERENCES ubicacion(id),
-    FOREIGN KEY (id_ubicacion_destino) REFERENCES ubicacion(id)
+    FOREIGN KEY (id_ubicacion) REFERENCES ubicacion(id)
 );

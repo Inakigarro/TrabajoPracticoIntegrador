@@ -6,6 +6,7 @@ public enum TipoMovimiento {
     EGRESO("Egreso"),
     INTERNO("Interno");
 
+
     private final String descripcion;
 
     TipoMovimiento(String descripcion) {
