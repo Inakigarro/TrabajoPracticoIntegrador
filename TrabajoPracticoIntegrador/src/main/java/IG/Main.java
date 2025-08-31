@@ -16,20 +16,9 @@ public class Main {
 
 
         try (Connection conn = ConexionBD.obtenerConexion()) {
-            System.out.println("Conexión exitosa a la base de datos.");
-            System.out.println("creacion productoDAO");
-            ProductoDAO productoDAO = new ProductoDAO(conn);
-
-            System.out.println("creacion nuevo tipo producto");
-            TipoProducto nuevoTipoProducto = new TipoProducto("Botella");
-            productoDAO.insertarTipoProducto(nuevoTipoProducto);
-            System.out.println("creacion nuevo producto");
-            Producto nuevo = new Producto("Coca Cola Zero", 1.5d, "Litros", 100.00, nuevoTipoProducto);
-
-            System.out.println("insertando producto");
-            productoDAO.insertarProducto(nuevo);
-
-            System.out.println("Producto insertado con ID: " + nuevo.getId());
+            System.out.println("Inicializando base de datos...");
+            ProductoUbicacionDAO productoUbicacionDao = new ProductoUbicacionDAO(conn);
+            productoUbicacionDao.inicializacion();
         } catch (Exception e) {
             e.printStackTrace();
         }
