@@ -16,7 +16,6 @@ import java.util.List;
 public class OrdenMovimientoDAO {
 
     private final Connection conn;
-    private final Integer CANTIDAD_MAXIMA_DETALLES = 100;
 
     public OrdenMovimientoDAO(Connection conn) {
         this.conn = conn;
@@ -72,7 +71,7 @@ public class OrdenMovimientoDAO {
                 pendientes++;
 
                 // Se ejecutan batches pequeños para evitar saturar la memoria.
-                if (pendientes % CANTIDAD_MAXIMA_DETALLES == 0) {
+                if (pendientes % 100 == 0) {
                     stmt.executeBatch();
                 }
             }

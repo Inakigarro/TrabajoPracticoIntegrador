@@ -1,9 +1,6 @@
 package IG.domain.DAO;
 
-import IG.domain.Clases.Producto;
-import IG.domain.Clases.TipoProducto;
-import IG.domain.Clases.Ubicacion;
-import IG.domain.Clases.Zona;
+import IG.domain.Clases.*;
 import IG.domain.Enums.TipoZona;
 
 import java.sql.*;
@@ -213,8 +210,10 @@ public class ProductoUbicacionDAO {
             LIMIT ? OFFSET ?
             """;
 
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, pageSize);
+            stmt.setInt(2, (pageNumber - 1) * pageSize);
+            ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 Producto producto = new Producto();
                 producto.setId(rs.getInt("p_id"));
@@ -234,6 +233,186 @@ public class ProductoUbicacionDAO {
             throw new SQLException("Error al listar los productos: " + ex.getMessage());
         }
         return productos;
+    }
+
+    // Operaciones Nave.
+    public void insertarNave(Nave nave) throws SQLException {
+        String sql = "INSERT INTO nave (id) VALUES (DEFAULT)";
+
+        try(PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("No se pudo insertar la nave, no se afectaron filas.");
+            } else {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        nave.setId(generatedKeys.getInt(1));
+                    }
+                } catch (SQLException ex) {
+                    throw new SQLException("Error al obtener el ID generado para la nave: " + ex.getMessage());
+                }
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al insertar la nave: " + ex.getMessage());
+        }
+    }
+
+    public Nave buscarNavePorId(Integer id) throws SQLException {
+        String sql = """
+                SELECT
+                    id as n_id,
+                FROM nave
+                WHERE id = ?
+            """;
+
+        try(PreparedStatement ps = connection.prepareStatement(sql)) {
+               ps.setInt(1, id);
+               try (ResultSet rs = ps.executeQuery()) {
+                   if (rs.next()) {
+                       Nave nave = new Nave();
+                       nave.setId(rs.getInt(1));
+                       return nave;
+                   } else {
+                       throw new SQLException("No se encontró la nave con ID: " + id);
+                   }
+               } catch (SQLException ex) {
+                   throw new SQLException("Error al obtener la nave: " + ex.getMessage());
+               }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al obtener la nave: " + ex.getMessage());
+        }
+    }
+
+    public List<Nave> listarNaves(Integer pageNumber, Integer pageSize) throws SQLException {
+        List<Nave> naves = new ArrayList<>();
+        String sql = """
+                SELECT
+                    id,
+                    COUNT(*) OVER() AS total_count
+                FROM nave
+                ORDER BY id
+                LIMIT ? OFFSET ?
+                """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, pageSize);
+            stmt.setInt(2, (pageNumber - 1) * pageSize);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Nave nave = new Nave();
+                    nave.setId(rs.getInt("id"));
+                    naves.add(nave);
+                }
+                return naves;
+            } catch (SQLException ex) {
+                throw new SQLException("Error al listar las naves: " + ex.getMessage());
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al listar las naves: " + ex.getMessage());
+        }
+    }
+
+    // Operaciones Zona.
+    public void insertarZona(Zona zona) throws SQLException {
+        String sql = """
+                INSERT INTO zona (tipo, id_nave)
+                VALUES (?, ?)
+                """;
+
+        try(PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, zona.getTipo().getDescripcion());
+            stmt.setInt(2, zona.getNave().getId());
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("No se pudo insertar la zona, no se afectaron filas.");
+            } else {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        zona.setId(generatedKeys.getInt(1));
+                    }
+                } catch (SQLException ex) {
+                    throw new SQLException("Error al obtener el ID generado para la zona: " + ex.getMessage());
+                }
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al insertar la zona: " + ex.getMessage());
+        }
+    }
+
+    public Zona buscarZonaPorId(Integer id) throws SQLException {
+        String sql = """
+                SELECT
+                    z.id as z_id,
+                    z.tipo as z_tipo_zona,
+                    n.id as n_id,
+                FROM zona z
+                INNER JOIN nave n ON z.id_nave = n.id
+                WHERE z.id = ?
+                """;
+
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+               stmt.setInt(1, id);
+               try (ResultSet rs = stmt.executeQuery()) {
+                   if (rs.next()) {
+                       Zona zona = new Zona();
+                       zona.setId(rs.getInt("z_id"));
+                       zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo_zona")));
+
+                       Nave nave = new Nave();
+                       nave.setId(rs.getInt("n_id"));
+                       zona.setNave(nave);
+                       nave.agregarZona(zona);
+
+                       return zona;
+                   } else {
+                       throw new SQLException("No se encontró la zona con ID: " + id);
+                   }
+               } catch (SQLException ex) {
+                   throw new SQLException("Error al obtener la zona: " + ex.getMessage());
+               }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al obtener la zona: " + ex.getMessage());
+        }
+    }
+
+    public List<Zona> buscarZonasPorNaveId(Integer naveId, Integer pageNumber, Integer pageSize) throws SQLException {
+        String sql = """
+                SELECT
+                    z.id as z_id,
+                    z.tipo as z_tipo_zona,
+                    n.id as n_id
+                FROM zona z
+                INNER JOIN nave n ON z.id_nave = n.id
+                WHERE n.id = ?
+                ORDER BY z.id
+                LIMIT ? OFFSET ?
+                """;
+
+        List<Zona> zonas = new ArrayList<>();
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setInt(1, naveId);
+                stmt.setInt(2, pageSize);
+                stmt.setInt(3, (pageNumber - 1) * pageSize);
+               try (ResultSet rs = stmt.executeQuery()) {
+                   while (rs.next()) {
+                       Zona zona = new Zona();
+                       zona.setId(rs.getInt("z_id"));
+                       zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo_zona")));
+
+                       Nave nave = new Nave();
+                       nave.setId(rs.getInt("n_id"));
+                       zona.setNave(nave);
+                       nave.agregarZona(zona);
+
+                       zonas.add(zona);
+                   }
+                   return zonas;
+               } catch (SQLException ex) {
+                   throw new SQLException("Error al obtener las zonas: " + ex.getMessage());
+               }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al obtener las zonas: " + ex.getMessage());
+        }
     }
 
     // Operaciones Ubicacion.
