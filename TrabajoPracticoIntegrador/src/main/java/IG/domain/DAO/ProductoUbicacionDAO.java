@@ -19,7 +19,7 @@ public class ProductoUbicacionDAO {
     }
 
     public void inicializacion() throws SQLException{
-        try (Statement stmt = connection.createStatement()) {
+        try {
             this.crearTablaTipoProducto();
             this.crearTablaProducto();
             this.crearTablaNave();

@@ -21,11 +21,23 @@ public class OrdenMovimientoDAO {
         this.conn = conn;
     }
 
+    public void inicializacion() throws SQLException {
+        try {
+            this.crearTablaOrdenMovimiento();
+            this.crearTablaDetalleMovimiento();
+        } catch (SQLException exception) {
+            throw new SQLException("Error durante el proceso de inicializacion de OrdenMovimiento: " + exception.getMessage());
+        }
+    }
+
+    // Operaciones Orden Movimiento.
+
     /// <summary>
     /// Inserta una nueva orden de movimiento en la base de datos.
     /// El ID se genera automáticamente y se asigna al objeto OrdenMovimiento proporcionado.
     /// </summary>
     public void insertarOrdenMovimiento(OrdenMovimiento ordenMovimiento) throws SQLException {
+
         // Inicializo la query a ejecutar.
         String sql = "INSERT INTO orden_movimiento (tipo, fecha, estado) VALUES (?, ?, ?)";
 
@@ -49,6 +61,38 @@ public class OrdenMovimientoDAO {
         }
     }
 
+    public OrdenMovimiento buscarOrdenMovimientoPorId(Integer id) throws SQLException {
+        String sql = """
+                SELECT
+                	om.id om_id,
+                    om.tipo om_tipo,
+                    om.fecha om_fecha,
+                    om.estado om_estado
+                FROM orden_movimiento om
+                WHERE id = 1;
+                """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    OrdenMovimiento om = new OrdenMovimiento();
+                    om.setId(rs.getInt("om_id"));
+                    om.setTipo(TipoMovimiento.valueOf(rs.getString("om_tipo")));
+                    om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
+                    om.setEstado(EstadosOrdenes.valueOf(rs.getString("om_estado")));
+
+                    return om;
+                } else {
+                    throw new SQLException("No se encontró una orden de movimiento con ID: " + id);
+                }
+            } catch (SQLException exception) {
+                throw new SQLException("Error al buscar la orden de movimiento por ID: " + exception.getMessage(), exception);
+            }
+        } catch (SQLException exception) {
+            throw new SQLException("Error al preparar la consulta para buscar la orden de movimiento por ID: " + exception.getMessage(), exception);
+        }
+    }
     /// <summary>
     /// Inserta un nuevo detalle de orden de movimiento en la base de datos.
     /// El ID se genera automáticamente y se asigna al objeto DetalleMovimiento proporcionado.
@@ -132,5 +176,51 @@ public class OrdenMovimientoDAO {
         o.setFecha(rs.getTimestamp("fecha").toLocalDateTime());
         o.setEstado(EstadosOrdenes.valueOf(rs.getString("estado"))); // se obtiene directamente del nombre en mayúsculas
         return o;
+    }
+
+    private void crearTablaOrdenMovimiento() throws SQLException {
+        String sql = """
+                CREATE TABLE IF NOT EXISTS orden_movimiento (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    tipo Enum('Sin Definir', 'Ingreso', 'Egreso', 'Interno') NOT NULL,
+                    fecha TIMESTAMP NOT NULL,
+                    estado Enum('Pendiente', 'Aprobado', 'En Proceso', 'Completado', 'Cancelado') NOT NULL
+                );
+                """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            System.out.println("Creando tabla orden_movimiento...");
+            stmt.execute();
+            System.out.println("Tabla orden_movimiento creada correctamente.");
+        } catch (SQLException ex) {
+            String error = "Error al crear la tabla orden_movimiento: ";
+            System.out.println(error);
+            throw new SQLException(error + ex.getMessage(), ex);
+        }
+    }
+
+    private void crearTablaDetalleMovimiento() throws SQLException {
+        String sql = """
+                CREATE TABLE IF NOT EXISTS detalle_movimiento (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    cantidad DOUBLE NOT NULL,
+                    id_producto INT NOT NULL,
+                    id_orden_movimiento INT NOT NULL,
+                    id_ubicacion INT NOT NULL,
+                    es_salida BOOLEAN NOT NULL,
+                    FOREIGN KEY (id_producto) REFERENCES producto(id),
+                    FOREIGN KEY (id_orden_movimiento) REFERENCES orden_movimiento(id),
+                    FOREIGN KEY (id_ubicacion) REFERENCES ubicacion(id)
+                );
+                """;
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            System.out.println("Creando tabla detalle_movimiento...");
+            stmt.execute();
+            System.out.println("Tabla detalle_movimiento creada correctamente.");
+        } catch (SQLException ex) {
+            String error = "Error al crear la tabla detalle_movimiento: ";
+            System.out.println(error);
+            throw new SQLException(error + ex.getMessage(), ex);
+        }
     }
 }
