@@ -6,6 +6,7 @@ import IG.views.MainWindow;
 import IG.config.ConexionBD;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) {
@@ -14,8 +15,21 @@ public class Main {
         });
 
 
-        try (Connection conn = ConexionBD.obtenerConexion()) {
+        try (Connection conn = ConexionBD.obtenerConexionMySQL()) {
             System.out.println("Inicializando base de datos...");
+            System.out.println("Creando base de datos si no existe...");
+            var stmt = conn.prepareStatement("""
+                CREATE DATABASE IF NOT EXISTS `trabajoIntegrador`
+            """);
+            stmt.executeUpdate();
+            stmt.close();
+            System.out.println("Base de datos creada o ya existía.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        try (Connection conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO productoUbicacionDao = new ProductoUbicacionDAO(conn);
             productoUbicacionDao.inicializacion();
             OrdenMovimientoDAO ordenmovimientoDAO = new OrdenMovimientoDAO(conn);

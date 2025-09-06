@@ -30,6 +30,12 @@ public class DetalleMovimiento {
     public Integer getId() {
         return id;
     }
+    public void setId(Integer id) {
+        if (id == null || id < 1) {
+            throw new IllegalArgumentException("El ID no puede ser nulo o menor que 1");
+        }
+        this.id = id;
+    }
 
     public void setProducto(Producto producto) {
         if (producto == null) {

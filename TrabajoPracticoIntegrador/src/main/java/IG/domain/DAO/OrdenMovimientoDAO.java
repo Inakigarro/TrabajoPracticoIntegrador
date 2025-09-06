@@ -93,6 +93,83 @@ public class OrdenMovimientoDAO {
             throw new SQLException("Error al preparar la consulta para buscar la orden de movimiento por ID: " + exception.getMessage(), exception);
         }
     }
+
+    public List<OrdenMovimiento> buscarOrdenMovimientoPorTipo(TipoMovimiento tipo) throws SQLException {
+        String sql = """
+                SELECT
+                    om.id om_id,
+                    om.tipo om_tipo,
+                    om.fecha om_fecha,
+                    om.estado om_estado
+                FROM orden_movimiento om
+                WHERE om.tipo = ?
+                """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, tipo.getDescripcion());
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<OrdenMovimiento> ordenMovimientos = new ArrayList<>();
+                while (rs.next()) {
+                    OrdenMovimiento om = new OrdenMovimiento();
+                    om.setId(rs.getInt("om_id"));
+                    om.setTipo(TipoMovimiento.valueOf(rs.getString("om_tipo")));
+                    om.setEstado(EstadosOrdenes.valueOf(rs.getString("om_estado")));
+                    om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
+
+                    ordenMovimientos.add(om);
+                }
+                return ordenMovimientos;
+            } catch (SQLException exception) {
+                String error = "Error al buscar la orden de movimiento por Tipo: ";
+                System.out.println(error);
+                throw new SQLException(error, exception.getMessage());
+            }
+        } catch (SQLException exception) {
+            String error = "Error al preparar la consulta para buscar la orden de movimiento por Tipo: ";
+            System.out.println(error);
+            throw new SQLException(error, exception.getMessage());
+        }
+    }
+
+    public List<OrdenMovimiento> listarOrdenMovimiento(Integer pageSize, Integer pageNumber) throws SQLException {
+        String sql = """
+                SELECT
+                    om.id om_id,
+                    om.tipo om_tipo,
+                    om.fecha om_fecha,
+                    om.estado om_estado
+                FROM orden_movimiento om
+                ORDER BY om.id
+                LIMIT ? OFFSET ?
+                """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, pageSize);
+            stmt.setInt(2, pageNumber - 1);
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<OrdenMovimiento> ordenMovimientos = new ArrayList<>();
+                while (rs.next()) {
+                    OrdenMovimiento om = new OrdenMovimiento();
+                    om.setId(rs.getInt("om_id"));
+                    om.setTipo(TipoMovimiento.valueOf(rs.getString("om_tipo")));
+                    om.setEstado(EstadosOrdenes.valueOf(rs.getString("om_estado")));
+                    om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
+
+                    ordenMovimientos.add(om);
+                }
+                return ordenMovimientos;
+            } catch (SQLException exception) {
+                String error = "Error al listar las ordenes de movimiento: ";
+                System.out.println(error);
+                throw new SQLException(error, exception.getMessage());
+            }
+        } catch (SQLException exception) {
+            String error = "Error al preparar la consulta para listar las ordenes de movimiento: ";
+            System.out.println(error);
+            throw new SQLException(error, exception.getMessage());
+        }
+    }
+
     /// <summary>
     /// Inserta un nuevo detalle de orden de movimiento en la base de datos.
     /// El ID se genera automáticamente y se asigna al objeto DetalleMovimiento proporcionado.
@@ -127,27 +204,50 @@ public class OrdenMovimientoDAO {
         }
     }
 
-    public OrdenMovimiento buscarPorId(int id) throws SQLException {
-        String sql = "SELECT * FROM orden_movimiento WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return mapRowToOrdenMovimiento(rs);
-            }
-        }
-        return null;
-    }
+    public List<DetalleMovimiento> buscarDetallesPorOrdenId(Integer ordenId) throws SQLException {
+        String sql = """
+                SELECT
+                    dm.id dm_id,
+                    dm.cantidad dm_cantidad,
+                    dm.id_producto dm_id_producto,
+                    dm.id_orden_movimiento dm_id_orden_movimiento,
+                    dm.id_ubicacion dm_id_ubicacion,
+                    dm.es_salida dm_es_salida
+                FROM detalle_movimiento dm
+                WHERE dm.id_orden_movimiento = ?
+                """;
 
-    public List<OrdenMovimiento> listarTodos() throws SQLException {
-        List<OrdenMovimiento> ordenes = new ArrayList<>();
-        String sql = "SELECT * FROM orden_movimiento";
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                ordenes.add(mapRowToOrdenMovimiento(rs));
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, ordenId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<DetalleMovimiento> detalles = new ArrayList<>();
+                while (rs.next()) {
+                    DetalleMovimiento dm = new DetalleMovimiento();
+                    dm.setId(rs.getInt("dm_id"));
+                    dm.setCantidad(rs.getDouble("dm_cantidad"));
+                    //TODO: Averiguar como conectar los productos con los detalles.
+
+                    // Aquí deberías cargar los objetos Producto, OrdenMovimiento y Ubicacion
+                    // usando sus respectivos DAOs si es necesario.
+                    // Por simplicidad, solo asigno los IDs.
+                    // dm.setProducto(new Producto(rs.getInt("dm_id_producto")));
+                    // dm.setOrdenMovimiento(new OrdenMovimiento(rs.getInt("dm_id_orden_movimiento")));
+                    // dm.setUbicacion(new Ubicacion(rs.getInt("dm_id_ubicacion")));
+                    dm.setEsSalida(rs.getBoolean("dm_es_salida"));
+
+                    detalles.add(dm);
+                }
+                return detalles;
+            } catch (SQLException exception) {
+                String error = "Error al buscar los detalles por ID de orden: ";
+                System.out.println(error);
+                throw new SQLException(error, exception.getMessage());
             }
+        } catch (SQLException exception) {
+            String error = "Error al preparar la consulta para buscar los detalles por ID de orden: ";
+            System.out.println(error);
+            throw new SQLException(error, exception.getMessage());
         }
-        return ordenes;
     }
 
     public void actualizar(OrdenMovimiento orden) throws SQLException {
