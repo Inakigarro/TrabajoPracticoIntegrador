@@ -32,11 +32,11 @@ public class ProductoUbicacionDAO {
     }
 
     // Operaciones TipoProducto.
-    public void insertarTipoProducto(TipoProducto tipoProducto) throws SQLException {
+    public TipoProducto insertarTipoProducto(String descripcion) throws SQLException {
         String tipoProductoSql = "INSERT INTO tipo_producto (descripcion) VALUES (?)";
 
         try (PreparedStatement ps = connection.prepareStatement(tipoProductoSql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, tipoProducto.getDescripcion());
+            ps.setString(1, descripcion);
 
             int affectedRows = ps.executeUpdate();
             if (affectedRows == 0) {
@@ -44,7 +44,11 @@ public class ProductoUbicacionDAO {
             }
             try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
+                    TipoProducto tipoProducto = new TipoProducto(descripcion);
                     tipoProducto.setId(generatedKeys.getInt(1));
+                    return tipoProducto;
+                } else {
+                    throw new SQLException("No se pudo insertar el tipo de producto, no se obtuvo el ID.");
                 }
             } catch (SQLException ex) {
                 throw new SQLException("Error al obtener el ID generado para el tipo de producto: " + ex.getMessage());
@@ -95,7 +99,7 @@ public class ProductoUbicacionDAO {
     }
 
     // Operaciones Producto.
-    public void insertarProducto(Producto producto) throws SQLException {
+    public Producto insertarProducto(Producto producto) throws SQLException {
         String productoSql = "INSERT INTO producto (descripcion, cantidad_unidad, unidad_medida, stock, id_tipo_producto) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(productoSql, Statement.RETURN_GENERATED_KEYS)) {
@@ -112,6 +116,9 @@ public class ProductoUbicacionDAO {
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     producto.setId(generatedKeys.getInt(1));
+                    return producto;
+                } else {
+                    throw new SQLException("No se pudo insertar el producto, no se obtuvo el ID.");
                 }
             } catch (SQLException ex) {
                 throw  new SQLException("Error al insertar el producto: " + ex.getMessage());
@@ -203,7 +210,6 @@ public class ProductoUbicacionDAO {
                 p.stock AS p_stock,
                 tp.id AS tp_id,
                 tp.descripcion AS tp_descripcion
-                COUNT(*) OVER() AS total_count
             FROM producto p
             INNER JOIN tipo_producto tp ON p.id_tipo_producto = tp.id
             ORDER BY p.id
@@ -213,7 +219,7 @@ public class ProductoUbicacionDAO {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, pageSize);
             stmt.setInt(2, (pageNumber - 1) * pageSize);
-            ResultSet rs = stmt.executeQuery(sql);
+            ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Producto producto = new Producto();
                 producto.setId(rs.getInt("p_id"));
