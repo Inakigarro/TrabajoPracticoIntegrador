@@ -1,5 +1,7 @@
 package IG.views;
 
+import IG.views.ubicaciones.UbicacionesView;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -23,26 +25,27 @@ public class UbicacionManagementView extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Alta de Ubicación"));
-
-        formPanel.add(new JLabel("Nave:"));
-        formPanel.add(cmbNave);
-        formPanel.add(new JLabel("Zona:"));
-        formPanel.add(txtZona);
-        formPanel.add(new JLabel("Estantería:"));
-        formPanel.add(txtEstanteria);
-        formPanel.add(new JLabel("Nivel:"));
-        formPanel.add(txtNivel);
-        formPanel.add(new JLabel("Capacidad (kg):"));
-        formPanel.add(txtCapacidad);
-
+        JPanel formPanel = UbicacionesView.buildUI();
+//        JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
+//        formPanel.setBorder(BorderFactory.createTitledBorder("Alta de Ubicación"));
+//
+//        formPanel.add(new JLabel("Nave:"));
+//        formPanel.add(cmbNave);
+//        formPanel.add(new JLabel("Zona:"));
+//        formPanel.add(txtZona);
+//        formPanel.add(new JLabel("Estantería:"));
+//        formPanel.add(txtEstanteria);
+//        formPanel.add(new JLabel("Nivel:"));
+//        formPanel.add(txtNivel);
+//        formPanel.add(new JLabel("Capacidad (kg):"));
+//        formPanel.add(txtCapacidad);
+//
         JButton btnAgregar = new JButton("Agregar Ubicación");
         JButton btnEliminar = new JButton("Eliminar Seleccionada");
         JButton btnModificar = new JButton("Modificar Seleccionada");
-
-        formPanel.add(btnAgregar);
-        formPanel.add(btnModificar);
+//
+//        formPanel.add(btnAgregar);
+//        formPanel.add(btnModificar);
 
         JScrollPane scrollPane = new JScrollPane(table);
 

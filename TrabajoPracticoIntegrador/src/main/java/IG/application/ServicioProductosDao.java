@@ -2,6 +2,7 @@ package IG.application;
 
 import IG.application.Dtos.ProductoDto;
 import IG.application.Dtos.TipoProductoDto;
+import IG.application.interfaces.IServicioProductos;
 import IG.config.ConexionBD;
 import IG.domain.Clases.Producto;
 import IG.domain.Clases.TipoProducto;
@@ -11,7 +12,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-public class ServicioProductosDao implements IServicioProductos{
+public class ServicioProductosDao implements IServicioProductos {
     private ConexionBD conexionBD;
 
     public ServicioProductosDao() {

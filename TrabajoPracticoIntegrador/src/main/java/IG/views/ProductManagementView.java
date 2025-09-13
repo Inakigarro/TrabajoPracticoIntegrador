@@ -2,15 +2,10 @@ package IG.views;
 
 import IG.application.Dtos.ProductoDto;
 import IG.application.Dtos.TipoProductoDto;
-import IG.application.IServicioProductos;
+import IG.application.interfaces.IServicioProductos;
 import IG.application.ServicioProductosDao;
-import IG.domain.Clases.Producto;
-import IG.domain.Clases.TipoProducto;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.ArrayList;

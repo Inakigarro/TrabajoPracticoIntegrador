@@ -1,4 +1,4 @@
-package IG.application;
+package IG.application.interfaces;
 
 import IG.application.Dtos.ProductoDto;
 

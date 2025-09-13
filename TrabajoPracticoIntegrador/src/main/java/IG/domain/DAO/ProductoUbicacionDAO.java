@@ -242,7 +242,7 @@ public class ProductoUbicacionDAO {
     }
 
     // Operaciones Nave.
-    public void insertarNave(Nave nave) throws SQLException {
+    public Nave insertarNave(Nave nave) throws SQLException {
         String sql = "INSERT INTO nave (id) VALUES (DEFAULT)";
 
         try(PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -253,6 +253,9 @@ public class ProductoUbicacionDAO {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         nave.setId(generatedKeys.getInt(1));
+                        return nave;
+                    } else {
+                        throw new SQLException("No se pudo insertar la nave, no se obtuvo el ID.");
                     }
                 } catch (SQLException ex) {
                     throw new SQLException("Error al obtener el ID generado para la nave: " + ex.getMessage());
@@ -318,8 +321,49 @@ public class ProductoUbicacionDAO {
         }
     }
 
+    public List<Nave> listarNavesConZonas() throws SQLException {
+        List<Nave> naves = new ArrayList<>();
+        String sql = """
+                SELECT
+                    n.id AS n_id,
+                    z.id AS z_id,
+                    z.tipo AS z_tipo
+                FROM nave n
+                LEFT JOIN zona z ON z.id_nave = n.id
+                ORDER BY n.id, z.id
+                """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                Nave currentNave = null;
+                while (rs.next()) {
+                    int naveId = rs.getInt("n_id");
+                    if (currentNave == null || currentNave.getId() != naveId) {
+                        currentNave = new Nave();
+                        currentNave.setId(naveId);
+                        naves.add(currentNave);
+                    }
+
+                    int zonaId = rs.getInt("z_id");
+                    if (!rs.wasNull()) {
+                        Zona zona = new Zona();
+                        zona.setId(zonaId);
+                        zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo").toUpperCase()));
+                        zona.setNave(currentNave);
+                        currentNave.agregarZona(zona);
+                    }
+                }
+                return naves;
+            } catch (SQLException ex) {
+                throw new SQLException("Error al listar las naves con zonas: " + ex.getMessage());
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al listar las naves con zonas: " + ex.getMessage());
+        }
+    }
+
     // Operaciones Zona.
-    public void insertarZona(Zona zona) throws SQLException {
+    public Zona insertarZona(Zona zona) throws SQLException {
         String sql = """
                 INSERT INTO zona (tipo, id_nave)
                 VALUES (?, ?)
@@ -335,6 +379,9 @@ public class ProductoUbicacionDAO {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         zona.setId(generatedKeys.getInt(1));
+                        return zona;
+                    } else {
+                        throw new SQLException("No se pudo insertar la zona, no se obtuvo el ID.");
                     }
                 } catch (SQLException ex) {
                     throw new SQLException("Error al obtener el ID generado para la zona: " + ex.getMessage());
@@ -350,7 +397,7 @@ public class ProductoUbicacionDAO {
                 SELECT
                     z.id as z_id,
                     z.tipo as z_tipo_zona,
-                    n.id as n_id,
+                    n.id as n_id
                 FROM zona z
                 INNER JOIN nave n ON z.id_nave = n.id
                 WHERE z.id = ?
@@ -362,7 +409,7 @@ public class ProductoUbicacionDAO {
                    if (rs.next()) {
                        Zona zona = new Zona();
                        zona.setId(rs.getInt("z_id"));
-                       zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo_zona")));
+                       zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo_zona").toUpperCase()));
 
                        Nave nave = new Nave();
                        nave.setId(rs.getInt("n_id"));
@@ -403,7 +450,45 @@ public class ProductoUbicacionDAO {
                    while (rs.next()) {
                        Zona zona = new Zona();
                        zona.setId(rs.getInt("z_id"));
-                       zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo_zona")));
+                       zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo_zona").toUpperCase()));
+
+                       Nave nave = new Nave();
+                       nave.setId(rs.getInt("n_id"));
+                       zona.setNave(nave);
+                       nave.agregarZona(zona);
+
+                       zonas.add(zona);
+                   }
+                   return zonas;
+               } catch (SQLException ex) {
+                   throw new SQLException("Error al obtener las zonas: " + ex.getMessage());
+               }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al obtener las zonas: " + ex.getMessage());
+        }
+    }
+
+    public List<Zona> buscarZonas(Integer pageNumber, Integer pageSize) throws SQLException {
+        String sql = """
+                SELECT
+                    z.id as z_id,
+                    z.tipo as z_tipo_zona,
+                    n.id as n_id
+                FROM zona z
+                INNER JOIN nave n ON z.id_nave = n.id
+                ORDER BY z.id
+                LIMIT ? OFFSET ?
+                """;
+
+        List<Zona> zonas = new ArrayList<>();
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setInt(1, pageSize);
+                stmt.setInt(2, (pageNumber - 1) * pageSize);
+               try (ResultSet rs = stmt.executeQuery()) {
+                   while (rs.next()) {
+                       Zona zona = new Zona();
+                       zona.setId(rs.getInt("z_id"));
+                       zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo_zona").toUpperCase()));
 
                        Nave nave = new Nave();
                        nave.setId(rs.getInt("n_id"));
@@ -422,13 +507,13 @@ public class ProductoUbicacionDAO {
     }
 
     // Operaciones Ubicacion.
-    public void insertarUbicacion(Ubicacion ubicacion) throws SQLException{
+    public Ubicacion insertarUbicacion(Ubicacion ubicacion) throws SQLException{
         String sql = """
                 INSERT INTO ubicacion (nro_estanteria, nro_nivel, capacidad_usada, id_zona)
                 VALUES (?, ?, ?, ?)
                 """;
 
-        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try(PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, ubicacion.getNroEstanteria());
             stmt.setInt(2, ubicacion.getNroNivel());
             stmt.setDouble(3, ubicacion.getCapacidadUsada());
@@ -441,6 +526,9 @@ public class ProductoUbicacionDAO {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         ubicacion.setId(generatedKeys.getInt(1));
+                        return ubicacion;
+                    } else {
+                        throw new SQLException("No se pudo insertar la ubicación, no se obtuvo el ID.");
                     }
                 } catch (SQLException ex) {
                     throw new SQLException("Error al obtener el ID generado para la ubicación: " + ex.getMessage());
@@ -476,7 +564,7 @@ public class ProductoUbicacionDAO {
 
                     Zona zona = new Zona();
                     zona.setId(rs.getInt("z_id"));
-                    zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo")));
+                    zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo").toUpperCase()));
                     ubicacion.setZona(zona);
 
                     return ubicacion;
@@ -488,6 +576,47 @@ public class ProductoUbicacionDAO {
             }
         } catch (SQLException ex) {
             throw new SQLException("Error al obtener la ubicación: " + ex.getMessage());
+        }
+    }
+
+    public List<Ubicacion> buscarUbicacionesPorZona(Integer zonaId) throws SQLException {
+        List<Ubicacion> ubicaciones = new ArrayList<>();
+        String sql = """
+            SELECT 
+                u.id AS u_id,
+                u.nro_estanteria AS u_nro_estanteria,
+                u.nro_nivel AS u_nro_nivel,
+                u.capacidad_usada AS u_capacidad_usada,
+                z.id AS z_id,
+                z.tipo AS z_tipo
+            FROM ubicacion u
+            INNER JOIN zona z ON u.id_zona = z.id
+            WHERE z.id = ?
+            ORDER BY u.id
+            """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, zonaId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Ubicacion ubicacion = new Ubicacion();
+                ubicacion.setId(rs.getInt("u_id"));
+                ubicacion.setNroEstanteria(rs.getInt("u_nro_estanteria"));
+                ubicacion.setNroNivel(rs.getInt("u_nro_nivel"));
+                ubicacion.setCapacidadUsada(rs.getDouble("u_capacidad_usada"));
+
+                Zona zona = new Zona();
+                zona.setId(rs.getInt("z_id"));
+                zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo").toUpperCase()));
+                ubicacion.setZona(zona);
+
+                ubicaciones.add(ubicacion);
+            }
+            return ubicaciones;
+        } catch (SQLException ex) {
+            String error = "Error al listar las ubicaciones por zona: ";
+            System.out.println(error);
+            throw new SQLException(error + ex.getMessage());
         }
     }
 
@@ -517,7 +646,7 @@ public class ProductoUbicacionDAO {
 
                 Zona zona = new Zona();
                 zona.setId(rs.getInt("z_id"));
-                zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo")));
+                zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo").toUpperCase()));
                 ubicacion.setZona(zona);
 
                 ubicaciones.add(ubicacion);
