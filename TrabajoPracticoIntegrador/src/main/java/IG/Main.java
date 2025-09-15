@@ -1,6 +1,7 @@
 package IG;
 
 import IG.domain.DAO.OrdenMovimientoDAO;
+import IG.domain.DAO.OrdenTransformacionDAO;
 import IG.domain.DAO.ProductoUbicacionDAO;
 import IG.views.MainWindow;
 import IG.config.ConexionBD;
@@ -34,6 +35,8 @@ public class Main {
             productoUbicacionDao.inicializacion();
             OrdenMovimientoDAO ordenmovimientoDAO = new OrdenMovimientoDAO(conn);
             ordenmovimientoDAO.inicializacion();
+            OrdenTransformacionDAO ordentransformacionDAO = new OrdenTransformacionDAO(conn);
+            ordentransformacionDAO.inicializacion();
             System.out.println("Base de datos inicializada correctamente.");
         } catch (Exception e) {
             e.printStackTrace();

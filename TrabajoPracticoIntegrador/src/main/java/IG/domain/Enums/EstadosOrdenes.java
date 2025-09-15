@@ -24,4 +24,13 @@ public enum EstadosOrdenes {
     public String toString() {
         return descripcion;
     }
+
+    public static EstadosOrdenes fromDescripcion(String descripcion) {
+        for (EstadosOrdenes estado : values()) {
+            if (estado.getDescripcion().equalsIgnoreCase(descripcion)) {
+                return estado;
+            }
+        }
+        throw new IllegalArgumentException("Estado no válido: " + descripcion);
+    }
 }

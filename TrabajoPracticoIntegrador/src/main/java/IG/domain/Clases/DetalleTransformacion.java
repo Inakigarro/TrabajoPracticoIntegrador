@@ -5,12 +5,14 @@ public class DetalleTransformacion {
     private double cantidad;
     private Ubicacion ubicacion;
     private boolean esSalida;
+    private OrdenTransformacion ordenTransformacion;
 
-    public DetalleTransformacion(Producto producto, double cantidad, Ubicacion ubicacion, boolean esSalida) {
+    public DetalleTransformacion(Producto producto, double cantidad, Ubicacion ubicacion, boolean esSalida, OrdenTransformacion ordenTransformacion) {
         this.producto = producto;
         this.cantidad = cantidad;
         this.ubicacion = ubicacion;
         this.esSalida = esSalida;
+        this.ordenTransformacion = ordenTransformacion;
     }
 
     public DetalleTransformacion() {
@@ -18,6 +20,7 @@ public class DetalleTransformacion {
         this.cantidad = 0.0;
         this.ubicacion = null;
         this.esSalida = true;
+        this.ordenTransformacion = null;
     }
 
     public Producto getProducto() {
@@ -27,7 +30,6 @@ public class DetalleTransformacion {
     public void setProducto(Producto producto) {
         if (producto==null)
             throw new IllegalArgumentException("El producto no puede ser nulo");
-
         this.producto = producto;
     }
 
@@ -38,7 +40,6 @@ public class DetalleTransformacion {
     public void setCantidad(double cantidad) {
         if (cantidad == 0.0)
             throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
-
         this.cantidad = cantidad;
     }
 
@@ -49,7 +50,6 @@ public class DetalleTransformacion {
     public void setUbicacion(Ubicacion ubicacion) {
         if (ubicacion==null)
             throw new IllegalArgumentException("La ubicacion no debe ser nula");
-
         this.ubicacion = ubicacion;
     }
 
@@ -61,5 +61,14 @@ public class DetalleTransformacion {
         this.esSalida = esSalida;
     }
 
+    public OrdenTransformacion getOrdenTransformacion() {
+        return ordenTransformacion;
+    }
+
+    public void setOrdenTransformacion(OrdenTransformacion ordenTransformacion) {
+        if (ordenTransformacion == null)
+            throw new IllegalArgumentException("La orden de transformación no puede ser nula.");
+        this.ordenTransformacion = ordenTransformacion;
+    }
 }
 
