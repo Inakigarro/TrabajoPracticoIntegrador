@@ -8,11 +8,11 @@ public class DetalleTransformacion {
     private OrdenTransformacion ordenTransformacion;
 
     public DetalleTransformacion(Producto producto, double cantidad, Ubicacion ubicacion, boolean esSalida, OrdenTransformacion ordenTransformacion) {
-        this.producto = producto;
-        this.cantidad = cantidad;
-        this.ubicacion = ubicacion;
-        this.esSalida = esSalida;
-        this.ordenTransformacion = ordenTransformacion;
+        this.setProducto(producto);
+        this.setCantidad(cantidad);
+        this.setUbicacion(ubicacion);
+        this.setEsSalida(esSalida);
+        this.setOrdenTransformacion(ordenTransformacion);
     }
 
     public DetalleTransformacion() {
@@ -28,7 +28,7 @@ public class DetalleTransformacion {
     }
 
     public void setProducto(Producto producto) {
-        if (producto==null)
+        if (producto == null)
             throw new IllegalArgumentException("El producto no puede ser nulo");
         this.producto = producto;
     }
@@ -48,7 +48,7 @@ public class DetalleTransformacion {
     }
 
     public void setUbicacion(Ubicacion ubicacion) {
-        if (ubicacion==null)
+        if (ubicacion == null)
             throw new IllegalArgumentException("La ubicacion no debe ser nula");
         this.ubicacion = ubicacion;
     }

@@ -1,5 +1,7 @@
 package IG.domain.Clases;
 
+import IG.domain.Constants.UbicacionConstants;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +66,7 @@ public class Ubicacion {
     }
 
     public void setCapacidadUsada(double capacidadUsada) {
-        if (capacidadUsada < 0) {
+        if (capacidadUsada < UbicacionConstants.UBICACION_CAPACIDAD_MIN) {
             throw new IllegalArgumentException("La capacidad usada no puede ser negativa.");
         }
         this.capacidadUsada = capacidadUsada;

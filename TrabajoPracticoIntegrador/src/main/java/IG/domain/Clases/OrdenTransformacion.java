@@ -24,11 +24,11 @@ public class OrdenTransformacion {
 
     public OrdenTransformacion(Integer id, TipoTransformacion tipo, LocalDateTime fecha, EstadosOrdenes estado, List<DetalleTransformacion> detalleTransformacionList) {
         this();
-        this.id = id;
-        this.tipo = tipo;
-        this.fecha = fecha;
-        this.estado = estado != null ? estado : EstadosOrdenes.PENDIENTE;
-        this.detalleTransformacionList = detalleTransformacionList != null ? detalleTransformacionList : new ArrayList<>();
+        this.setId(id);
+        this.setTipo(tipo);
+        this.setFecha(fecha);
+        this.setEstado(estado);
+        this.agergarDetalles(detalleTransformacionList);
     }
 
     public Integer getId() {
@@ -89,5 +89,13 @@ public class OrdenTransformacion {
         detalleTransformacionList.add(detalle);
     }
 
+    public void agergarDetalles(List<DetalleTransformacion> detalles) {
+        if (detalles == null) {
+            throw new IllegalArgumentException("La lista de detalles no puede ser nula");
+        }
+        for (DetalleTransformacion detalle : detalles) {
+            agregarDetalle(detalle);
+        }
+    }
     //reenvasar
 }

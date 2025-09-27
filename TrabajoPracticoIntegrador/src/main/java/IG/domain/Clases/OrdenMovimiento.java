@@ -22,12 +22,13 @@ import java.util.List;
         detalleMovimientoList = new ArrayList<>();
     }
 
-    public OrdenMovimiento(Integer id, TipoMovimiento tipo, LocalDateTime fecha, EstadosOrdenes estado) {
+    public OrdenMovimiento(Integer id, TipoMovimiento tipo, LocalDateTime fecha, EstadosOrdenes estado, List<DetalleMovimiento> detalleMovimientoList) {
         this();
         this.setId(id);
         this.setTipo(tipo);
         this.setFecha(fecha);
         this.setEstado(estado);
+        this.agregarDetalles(detalleMovimientoList);
     }
 
     public Integer getId() {
@@ -77,6 +78,15 @@ import java.util.List;
 
     public void agregarDetalle(DetalleMovimiento detalle){
         detalleMovimientoList.add(detalle);
+    }
+
+    public void agregarDetalles(List<DetalleMovimiento> detalles){
+        if (detalles == null)
+            throw new IllegalArgumentException("La lista de detalles no puede ser nula.");
+
+        for (DetalleMovimiento detalle : detalles) {
+            agregarDetalle(detalle);
+        }
     }
 
     public void aprobar() {
