@@ -52,7 +52,6 @@ public class ProductoUbicacion {
         this.stockProductoUbicacion = stockProductoUbicacion;
     }
 
-    // ✅ Método "alias" para set/get stock
     public double getStock() {
         return stockProductoUbicacion;
     }
@@ -67,5 +66,15 @@ public class ProductoUbicacion {
 
     public void setId(int id) {
         Id = id;
+    }
+
+    public void sumarStock(double cantidad) {
+        if (cantidad < 0) throw new IllegalArgumentException("La cantidad a sumar no puede ser negativa.");
+        this.stockProductoUbicacion += cantidad;
+    }
+    public void restarStock(double cantidad) {
+        if (cantidad < 0) throw new IllegalArgumentException("La cantidad a restar no puede ser negativa.");
+        if (this.stockProductoUbicacion < cantidad) throw new IllegalStateException("Stock insuficiente en la ubicación.");
+        this.stockProductoUbicacion -= cantidad;
     }
 }

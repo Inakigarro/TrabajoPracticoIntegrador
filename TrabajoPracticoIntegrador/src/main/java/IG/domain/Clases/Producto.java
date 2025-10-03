@@ -1,5 +1,6 @@
 package IG.domain.Clases;
 
+import IG.application.Dtos.Producto.ProductoDto;
 import IG.domain.Constants.ProductoConstants;
 
 import java.util.ArrayList;
@@ -105,6 +106,30 @@ public class Producto {
         if (!this.tipoProducto.existe(this)){
             this.tipoProducto.addProducto(this);
         }
+    }
+
+    public ProductoUbicacion getProductoUbicacionPorUbicacionId(int ubicacionId) {
+        for (ProductoUbicacion pu : ubicaciones) {
+            if (pu.getUbicacion() != null && pu.getUbicacion().getId() == ubicacionId) {
+                return pu;
+            }
+        }
+        return null;
+    }
+
+    public List<ProductoUbicacion> getUbicaciones() {
+        return ubicaciones;
+    }
+
+    public static Producto map(ProductoDto dto) {
+        var prod = new Producto();
+        prod.setId(dto.id());
+        prod.setDescripcion(dto.descripcion());
+        prod.setCantidadUnidad(dto.cantidadUnidad());
+        prod.setUnidadMedida(dto.unidadMedida());
+        prod.setStock(dto.stock());
+        prod.setTipoProducto(TipoProducto.map(dto.tipoProducto()));
+        return prod;
     }
 
     @Override

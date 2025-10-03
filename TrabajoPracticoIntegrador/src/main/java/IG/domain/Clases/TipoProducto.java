@@ -3,6 +3,7 @@ package IG.domain.Clases;
 import java.util.ArrayList;
 import java.util.List;
 
+import IG.application.Dtos.Producto.TipoProductoDto;
 import IG.domain.Clases.Producto;
 
 public class TipoProducto {
@@ -73,6 +74,13 @@ public class TipoProducto {
         }
 
         return this.productos.contains(producto);
+    }
+
+    public static TipoProducto map(TipoProductoDto dto) {
+        var tipoProducto = new TipoProducto();
+        tipoProducto.setId(dto.id());
+        tipoProducto.setDescripcion(dto.descripcion());
+        return tipoProducto;
     }
 
     @Override

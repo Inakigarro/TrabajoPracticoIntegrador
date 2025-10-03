@@ -1,8 +1,8 @@
 package IG.application.interfaces;
 
-import IG.application.Dtos.NaveDto;
-import IG.application.Dtos.UbicacionDto;
-import IG.application.Dtos.ZonaDto;
+import IG.application.Dtos.Ubicacion.NaveDto;
+import IG.application.Dtos.Ubicacion.UbicacionDto;
+import IG.application.Dtos.Ubicacion.ZonaDto;
 import IG.domain.Clases.Ubicacion;
 import IG.domain.Clases.Zona;
 

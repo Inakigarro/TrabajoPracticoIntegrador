@@ -1,5 +1,6 @@
 package IG.domain.Clases;
 
+import IG.application.Dtos.Ubicacion.UbicacionDto;
 import IG.domain.Constants.UbicacionConstants;
 
 import java.util.ArrayList;
@@ -103,6 +104,44 @@ public class Ubicacion {
 
     public boolean estaDisponible() {
         return 1250d - capacidadUsada > 0;
+    }
+
+    public ProductoUbicacion getProductoUbicacionPorProductoId(int productoId) {
+        for (ProductoUbicacion pu : productos) {
+            if (pu.getProducto() != null && pu.getProducto().getId() == productoId) {
+                return pu;
+            }
+        }
+        return null;
+    }
+
+    public boolean tieneProducto(Producto producto) {
+        if (producto == null) return false;
+        for (ProductoUbicacion pu : productos) {
+            if (pu.getProducto() != null && pu.getProducto().getId() == producto.getId()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public double getStockProducto(Producto producto) {
+        if (producto == null) return 0.0;
+        for (ProductoUbicacion pu : productos) {
+            if (pu.getProducto() != null && pu.getProducto().getId() == producto.getId()) {
+                return pu.getStockProductoUbicacion();
+            }
+        }
+        return 0.0;
+    }
+
+    public static Ubicacion map(UbicacionDto dto) {
+        var ubicacion = new Ubicacion();
+        ubicacion.setId(dto.id());
+        ubicacion.setNroEstanteria(dto.nroEstanteria());
+        ubicacion.setNroNivel(dto.nroNivel());
+        ubicacion.setCapacidadUsada(dto.capacidadUsada());
+        return ubicacion;
     }
 
     @Override

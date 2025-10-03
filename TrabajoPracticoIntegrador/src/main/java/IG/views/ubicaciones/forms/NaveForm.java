@@ -1,8 +1,7 @@
 package IG.views.ubicaciones.forms;
 
-import IG.application.Dtos.NaveDto;
+import IG.application.Dtos.Ubicacion.NaveDto;
 import IG.application.interfaces.IServicioUbicaciones;
-import IG.domain.Clases.Nave;
 
 import javax.swing.*;
 

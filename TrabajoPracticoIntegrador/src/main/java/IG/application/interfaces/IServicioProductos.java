@@ -1,6 +1,6 @@
 package IG.application.interfaces;
 
-import IG.application.Dtos.ProductoDto;
+import IG.application.Dtos.Producto.ProductoDto;
 
 import java.sql.SQLException;
 import java.util.List;

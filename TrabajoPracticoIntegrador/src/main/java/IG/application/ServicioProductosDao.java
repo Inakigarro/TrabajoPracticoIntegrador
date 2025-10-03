@@ -1,7 +1,7 @@
 package IG.application;
 
-import IG.application.Dtos.ProductoDto;
-import IG.application.Dtos.TipoProductoDto;
+import IG.application.Dtos.Producto.ProductoDto;
+import IG.application.Dtos.Producto.TipoProductoDto;
 import IG.application.interfaces.IServicioProductos;
 import IG.config.ConexionBD;
 import IG.domain.Clases.Producto;
@@ -53,18 +53,8 @@ public class ServicioProductosDao implements IServicioProductos {
     public List<ProductoDto> obtenerProductos() throws SQLException {
         try(Connection conn = this.conexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO productoUbicacionDAO = new ProductoUbicacionDAO(conn);
-            List<Producto> productos = productoUbicacionDAO.listarProductos(1, 100);
-            return productos.stream().map(producto -> new ProductoDto(
-                    producto.getId(),
-                    producto.getDescripcion(),
-                    producto.getCantidadUnidad(),
-                    producto.getUnidadMedida(),
-                    producto.getStock(),
-                    new TipoProductoDto(
-                            producto.getTipoProducto().getId(),
-                            producto.getTipoProducto().getDescripcion()
-                    )
-            )).toList();
+            List<Producto> productos = productoUbicacionDAO.listarTodosProductos();
+            return productos.stream().map(ProductoDto::map).toList();
         } catch (SQLException exception) {
             String error = "Error al obtener los productos: " + exception.getMessage();
             System.out.println(error);

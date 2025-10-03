@@ -34,7 +34,7 @@ public class MainWindow extends JFrame {
         });
 
         btnMovimientos.addActionListener(e -> {
-            new OrdenMovimientoView().setVisible(true);
+            new OrdenMovimientoViewModerna().setVisible(true);
         });
 
         btnTransformaciones.addActionListener(e -> {

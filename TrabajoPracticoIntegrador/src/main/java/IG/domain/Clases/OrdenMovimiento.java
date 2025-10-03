@@ -1,5 +1,6 @@
 package IG.domain.Clases;
 
+import IG.application.Dtos.OrdenMovimiento.OrdenMovimientoDto;
 import IG.domain.Enums.TipoMovimiento;
 import IG.domain.Enums.EstadosOrdenes;
 
@@ -12,6 +13,7 @@ import java.util.List;
     private TipoMovimiento tipo;
     private LocalDateTime fecha;
     private EstadosOrdenes estado;
+    private EstadoOrdenMovimiento estadoOrden;
     private List<DetalleMovimiento> detalleMovimientoList;
 
     public OrdenMovimiento() {
@@ -19,6 +21,7 @@ import java.util.List;
         tipo = TipoMovimiento.SINDEFINIR;
         fecha = LocalDateTime.now();
         estado = EstadosOrdenes.PENDIENTE;
+        estadoOrden = new PendienteEstado();
         detalleMovimientoList = new ArrayList<>();
     }
 
@@ -29,6 +32,32 @@ import java.util.List;
         this.setFecha(fecha);
         this.setEstado(estado);
         this.agregarDetalles(detalleMovimientoList);
+        switch (estado) {
+            case PENDIENTE -> estadoOrden = new PendienteEstado();
+            case PROCESO -> estadoOrden = new EnProcesoEstado();
+            case COMPLETADO -> estadoOrden = new CompletadaEstado();
+            case CANCELADO -> estadoOrden = new CanceladaEstado();
+            default -> estadoOrden = new PendienteEstado();
+        }
+    }
+
+    public void aprobar() {
+        estadoOrden.aprobar(this);
+    }
+    public void ejecutar() {
+        estadoOrden.ejecutar(this);
+    }
+    public void completar() {
+        estadoOrden.completar(this);
+    }
+    public void cancelar() {
+        estadoOrden.cancelar(this);
+    }
+    public EstadoOrdenMovimiento getEstadoOrden() {
+        return estadoOrden;
+    }
+    public void setEstadoOrden(EstadoOrdenMovimiento estadoOrden) {
+        this.estadoOrden = estadoOrden;
     }
 
     public Integer getId() {
@@ -69,15 +98,12 @@ import java.util.List;
     }
 
     public void setEstado(EstadosOrdenes estado) {
-        if (estado == null) {
-            throw new IllegalArgumentException("El estado no puede ser nulo");
-        }
-
         this.estado = estado;
     }
 
     public void agregarDetalle(DetalleMovimiento detalle){
         detalleMovimientoList.add(detalle);
+        detalle.setOrdenMovimiento(this);
     }
 
     public void agregarDetalles(List<DetalleMovimiento> detalles){
@@ -89,45 +115,19 @@ import java.util.List;
         }
     }
 
-    public void aprobar() {
-        this.setEstado(EstadosOrdenes.APROBADO);
+    public List<DetalleMovimiento> getDetalleMovimientoList() {
+        return detalleMovimientoList;
     }
 
-     public void ejecutar() {
-         if (!estado.equals(EstadosOrdenes.APROBADO))
-             throw new IllegalStateException("Solo se puede ejecutar una orden con estado 'aprobado'.");
-
-         if (detalleMovimientoList == null || detalleMovimientoList.isEmpty())
-             throw new IllegalStateException("La orden no tiene detalles para ejecutar.");
-
-         for (DetalleMovimiento detalle : detalleMovimientoList) {
-             Producto producto = detalle.getProducto();
-             double cantidad = detalle.getCantidad();
-
-             if (producto == null)
-                 throw new IllegalStateException("Uno de los detalles no tiene producto.");
-
-             if (producto.getStock() <= 0d)
-                    throw new IllegalStateException("El producto no tiene stock.");
-
-             if (cantidad <= 0) {
-                 throw new IllegalStateException("Cantidad inválida en un detalle.");
-             }
-
-             Double stockActual = producto.getStock();  // necesitas que haya getStock()
-
-             if (detalle.esSalida()) {
-                 if (cantidad > stockActual) {
-                     throw new IllegalStateException("Stock insuficiente para el producto ID: " + producto.getId());
-                 }
-                 producto.setStock(stockActual - cantidad); // salida: descontar stock
-             } else {
-                 producto.setStock(stockActual + cantidad); // entrada: aumentar stock
-             }
-         }
-
-         this.setEstado(EstadosOrdenes.PROCESO);
-     }
+    public static OrdenMovimiento map(OrdenMovimientoDto dto) {
+        return new OrdenMovimiento(
+                dto.id(),
+                dto.tipo(),
+                dto.fecha(),
+                dto.estado(),
+                dto.detalleMovimientoList() != null ? dto.detalleMovimientoList().stream().map(DetalleMovimiento::map).toList() : new ArrayList<>()
+        );
+    }
 
     @Override
     public String toString() {

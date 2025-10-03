@@ -19,6 +19,15 @@ public enum TipoZona {
         return descripcion;
     }
 
+    public static TipoZona fromDescription(String descripcion) {
+        for (TipoZona tipo : TipoZona.values()) {
+            if (tipo.getDescripcion().equalsIgnoreCase(descripcion)) {
+                return tipo;
+            }
+        }
+        throw new IllegalArgumentException("No existe un tipo de zona con la descripcion: " + descripcion);
+    }
+
     @Override
     public String toString() {
         return "TipoZona{" +

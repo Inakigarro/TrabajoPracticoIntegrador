@@ -1,5 +1,6 @@
 package IG.domain.Clases;
 
+import IG.application.Dtos.Ubicacion.ZonaDto;
 import IG.domain.Enums.TipoZona;
 
 import java.util.ArrayList;
@@ -72,5 +73,12 @@ public class Zona {
             throw new IllegalArgumentException("La lista de ubicaciones no puede ser nula ni contener elementos nulos.");
         }
         this.ubicaciones.addAll(ubicaciones);
+    }
+
+    public static Zona map(ZonaDto dto) {
+        var zona = new Zona();
+        zona.setId(dto.id());
+        zona.setTipo(TipoZona.fromDescription(dto.tipo()));
+        return zona;
     }
 }

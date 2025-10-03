@@ -19,6 +19,15 @@ public enum TipoMovimiento {
         return descripcion;
     }
 
+    public static TipoMovimiento fromDescripcion(String descripcion) {
+        for (TipoMovimiento tm : values()) {
+            if (tm.getDescripcion().equalsIgnoreCase(descripcion)) {
+                return tm;
+            }
+        }
+        throw new IllegalArgumentException("No existe TipoMovimiento para la descripción: " + descripcion);
+    }
+
     @Override
     public String toString() {
         return descripcion;

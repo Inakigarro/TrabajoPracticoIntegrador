@@ -1,9 +1,9 @@
 package IG.domain.DAO;
 
-import IG.domain.Clases.DetalleMovimiento;
-import IG.domain.Clases.OrdenMovimiento;
+import IG.domain.Clases.*;
 import IG.domain.Enums.EstadosOrdenes;
 import IG.domain.Enums.TipoMovimiento;
+import IG.domain.Enums.TipoZona;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -37,17 +37,13 @@ public class OrdenMovimientoDAO {
     /// El ID se genera automáticamente y se asigna al objeto OrdenMovimiento proporcionado.
     /// </summary>
     public void insertarOrdenMovimiento(OrdenMovimiento ordenMovimiento) throws SQLException {
-
-        // Inicializo la query a ejecutar.
         String sql = "INSERT INTO orden_movimiento (tipo, fecha, estado) VALUES (?, ?, ?)";
-
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             var fecha = Timestamp.valueOf(ordenMovimiento.getFecha());
-            stmt.setString(1, ordenMovimiento.getTipo().getDescripcion()); // nombre en mayúsculas
+            stmt.setString(1, ordenMovimiento.getTipo().name()); // Usar el nombre del enum
             stmt.setTimestamp(2, fecha);
-            stmt.setString(3, ordenMovimiento.getEstado().getDescripcion()); // ✅ devuelve "APROBADO", "PROCESO", etc. // nombre del enum en mayúsculas
+            stmt.setString(3, ordenMovimiento.getEstadoOrden().getEstado().getDescripcion());
             stmt.executeUpdate();
-
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     ordenMovimiento.setId(generatedKeys.getInt(1));
@@ -64,24 +60,22 @@ public class OrdenMovimientoDAO {
     public OrdenMovimiento buscarOrdenMovimientoPorId(Integer id) throws SQLException {
         String sql = """
                 SELECT
-                	om.id om_id,
+                 om.id om_id,
                     om.tipo om_tipo,
                     om.fecha om_fecha,
                     om.estado om_estado
                 FROM orden_movimiento om
-                WHERE id = 1;
+                WHERE id = ?;
                 """;
-
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     OrdenMovimiento om = new OrdenMovimiento();
                     om.setId(rs.getInt("om_id"));
-                    om.setTipo(TipoMovimiento.valueOf(rs.getString("om_tipo")));
+                    om.setTipo(TipoMovimiento.fromDescripcion(rs.getString("om_tipo"))); // Usar la descripción del enum
                     om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
-                    om.setEstado(EstadosOrdenes.valueOf(rs.getString("om_estado")));
-
+                    om.setEstado(EstadosOrdenes.fromDescripcion(rs.getString("om_estado")));
                     return om;
                 } else {
                     throw new SQLException("No se encontró una orden de movimiento con ID: " + id);
@@ -104,18 +98,16 @@ public class OrdenMovimientoDAO {
                 FROM orden_movimiento om
                 WHERE om.tipo = ?
                 """;
-
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, tipo.getDescripcion());
+            stmt.setString(1, tipo.name()); // Usar el nombre del enum
             try (ResultSet rs = stmt.executeQuery()) {
                 List<OrdenMovimiento> ordenMovimientos = new ArrayList<>();
                 while (rs.next()) {
                     OrdenMovimiento om = new OrdenMovimiento();
                     om.setId(rs.getInt("om_id"));
-                    om.setTipo(TipoMovimiento.valueOf(rs.getString("om_tipo")));
-                    om.setEstado(EstadosOrdenes.valueOf(rs.getString("om_estado")));
+                    om.setTipo(TipoMovimiento.fromDescripcion(rs.getString("om_tipo"))); // Usar la descripción del enum
+                    om.setEstado(EstadosOrdenes.fromDescripcion(rs.getString("om_estado")));
                     om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
-
                     ordenMovimientos.add(om);
                 }
                 return ordenMovimientos;
@@ -142,7 +134,6 @@ public class OrdenMovimientoDAO {
                 ORDER BY om.id
                 LIMIT ? OFFSET ?
                 """;
-
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, pageSize);
             stmt.setInt(2, pageNumber - 1);
@@ -151,10 +142,9 @@ public class OrdenMovimientoDAO {
                 while (rs.next()) {
                     OrdenMovimiento om = new OrdenMovimiento();
                     om.setId(rs.getInt("om_id"));
-                    om.setTipo(TipoMovimiento.valueOf(rs.getString("om_tipo")));
-                    om.setEstado(EstadosOrdenes.valueOf(rs.getString("om_estado")));
+                    om.setTipo(TipoMovimiento.fromDescripcion(rs.getString("om_tipo"))); // Usar la descripción del enum
+                    om.setEstado(EstadosOrdenes.fromDescripcion(rs.getString("om_estado")));
                     om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
-
                     ordenMovimientos.add(om);
                 }
                 return ordenMovimientos;
@@ -191,29 +181,50 @@ public class OrdenMovimientoDAO {
                 stmt.addBatch();
                 pendientes++;
 
-                // Se ejecutan batches pequeños para evitar saturar la memoria.
                 if (pendientes % 100 == 0) {
                     stmt.executeBatch();
                 }
+
+                detalleMovimiento.aplicarMovimiento();
             }
 
-            // Ejecutar los pendientes restantes.
             stmt.executeBatch();
         } catch (SQLException ex) {
             throw new SQLException("Error al insertar el detalle de la orden de movimiento: " + ex.getMessage(), ex);
+        } finally {
+            conn.setAutoCommit(autoCommitPrevio);
         }
     }
 
     public List<DetalleMovimiento> buscarDetallesPorOrdenId(Integer ordenId) throws SQLException {
         String sql = """
                 SELECT
-                    dm.id dm_id,
-                    dm.cantidad dm_cantidad,
-                    dm.id_producto dm_id_producto,
-                    dm.id_orden_movimiento dm_id_orden_movimiento,
-                    dm.id_ubicacion dm_id_ubicacion,
-                    dm.es_salida dm_es_salida
+                	dm.id AS dm_id,
+                	dm.cantidad AS dm_cantidad,
+                	dm.id_producto AS dm_id_producto,
+                	dm.id_orden_movimiento AS dm_id_orden_movimiento,
+                	dm.id_ubicacion AS dm_id_ubicacion,
+                	dm.es_salida AS dm_es_salida,
+                    p.id AS p_id,
+                    p.descripcion AS p_descripcion,
+                    p.cantidad_unidad AS p_cantidad_unidad,
+                	p.unidad_medida AS p_unidad_medida,
+                	p.stock AS p_stock,
+                	tp.id AS tp_id,
+                	tp.descripcion AS tp_descripcion,
+                    u.id AS u_id,
+                	u.nro_estanteria AS u_nro_estanteria,
+                	u.nro_nivel AS u_nro_nivel,
+                	u.capacidad_usada AS u_capacidad_usada,
+                	z.id AS z_id,
+                	z.tipo AS z_tipo,
+                	n.id AS n_id
                 FROM detalle_movimiento dm
+                INNER JOIN producto p ON dm.id_producto = p.id
+                INNER JOIN tipo_producto tp ON p.id_tipo_producto = tp.id
+                INNER JOIN ubicacion u ON dm.id_ubicacion = u.id
+                INNER JOIN zona z ON u.id_zona = z.id
+                INNER JOIN nave n ON z.id_nave = n.id
                 WHERE dm.id_orden_movimiento = ?
                 """;
 
@@ -222,18 +233,39 @@ public class OrdenMovimientoDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 List<DetalleMovimiento> detalles = new ArrayList<>();
                 while (rs.next()) {
+                    Nave nave = new Nave();
+                    nave.setId(rs.getInt("n_id"));
+
+                    Zona zona = new Zona();
+                    zona.setId(rs.getInt("z_id"));
+                    zona.setTipo(TipoZona.fromDescription(rs.getString("z_tipo")));
+                    zona.setNave(nave);
+
+                    Ubicacion ubicacion = new Ubicacion();
+                    ubicacion.setId(rs.getInt("u_id"));
+                    ubicacion.setNroEstanteria(rs.getInt("u_nro_estanteria"));
+                    ubicacion.setNroNivel(rs.getInt("u_nro_nivel"));
+                    ubicacion.setCapacidadUsada(rs.getDouble("u_capacidad_usada"));
+                    ubicacion.setZona(zona);
+
+                    TipoProducto tipoProducto = new TipoProducto();
+                    tipoProducto.setId(rs.getInt("tp_id"));
+                    tipoProducto.setDescripcion(rs.getString("tp_descripcion"));
+
+                    Producto producto = new Producto();
+                    producto.setId(rs.getInt("p_id"));
+                    producto.setDescripcion(rs.getString("p_descripcion"));
+                    producto.setCantidadUnidad(rs.getDouble("p_cantidad_unidad"));
+                    producto.setUnidadMedida(rs.getString("p_unidad_medida"));
+                    producto.setStock(rs.getDouble("p_stock"));
+                    producto.setTipoProducto(tipoProducto);
+
                     DetalleMovimiento dm = new DetalleMovimiento();
                     dm.setId(rs.getInt("dm_id"));
                     dm.setCantidad(rs.getDouble("dm_cantidad"));
-                    //TODO: Averiguar como conectar los productos con los detalles.
-
-                    // Aquí deberías cargar los objetos Producto, OrdenMovimiento y Ubicacion
-                    // usando sus respectivos DAOs si es necesario.
-                    // Por simplicidad, solo asigno los IDs.
-                    // dm.setProducto(new Producto(rs.getInt("dm_id_producto")));
-                    // dm.setOrdenMovimiento(new OrdenMovimiento(rs.getInt("dm_id_orden_movimiento")));
-                    // dm.setUbicacion(new Ubicacion(rs.getInt("dm_id_ubicacion")));
                     dm.setEsSalida(rs.getBoolean("dm_es_salida"));
+                    dm.setUbicacion(ubicacion);
+                    dm.setProducto(producto);
 
                     detalles.add(dm);
                 }
@@ -250,12 +282,41 @@ public class OrdenMovimientoDAO {
         }
     }
 
+    public void eliminarDetallesDeOrden(Integer ordenId, List<Integer> detalleIds) throws SQLException {
+        if (detalleIds == null || detalleIds.isEmpty()) return;
+
+        String sql = "DELETE FROM detalle_movimiento WHERE id_orden_movimiento = ? AND id = ?";
+        Boolean autoCommitPrevio = conn.getAutoCommit();
+        conn.setAutoCommit(false);
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            Integer pendientes = 0;
+
+            for (Integer detalleId : detalleIds) {
+                stmt.setInt(1, ordenId);
+                stmt.setInt(2, detalleId);
+                stmt.addBatch();
+                pendientes++;
+
+                if (pendientes % 100 == 0) {
+                    stmt.executeBatch();
+                }
+            }
+
+            stmt.executeBatch();
+        } catch (SQLException ex) {
+            throw new SQLException("Error al eliminar los detalles de la orden de movimiento: " + ex.getMessage(), ex);
+        } finally {
+            conn.setAutoCommit(autoCommitPrevio);
+        }
+    }
+
     public void actualizar(OrdenMovimiento orden) throws SQLException {
         String sql = "UPDATE orden_movimiento SET tipo = ?, fecha = ?, estado = ? WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, orden.getTipo().name());
             stmt.setTimestamp(2, Timestamp.valueOf(orden.getFecha()));
-            stmt.setString(3, orden.getEstado().name());
+            stmt.setString(3, orden.getEstadoOrden().getEstado().name());
             stmt.setInt(4, orden.getId());
             stmt.executeUpdate();
         }
@@ -272,9 +333,9 @@ public class OrdenMovimientoDAO {
     private OrdenMovimiento mapRowToOrdenMovimiento(ResultSet rs) throws SQLException {
         OrdenMovimiento o = new OrdenMovimiento();
         o.setId(rs.getInt("id"));
-        o.setTipo(TipoMovimiento.valueOf(rs.getString("tipo")));
+        o.setTipo(TipoMovimiento.fromDescripcion(rs.getString("tipo")));
         o.setFecha(rs.getTimestamp("fecha").toLocalDateTime());
-        o.setEstado(EstadosOrdenes.valueOf(rs.getString("estado"))); // se obtiene directamente del nombre en mayúsculas
+        o.setEstado(EstadosOrdenes.fromDescripcion(rs.getString("estado"))); // se obtiene directamente del nombre en mayúsculas
         return o;
     }
 

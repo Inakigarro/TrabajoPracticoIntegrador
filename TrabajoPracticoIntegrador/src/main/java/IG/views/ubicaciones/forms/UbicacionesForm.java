@@ -1,7 +1,7 @@
 package IG.views.ubicaciones.forms;
 
-import IG.application.Dtos.NaveDto;
-import IG.application.Dtos.ZonaDto;
+import IG.application.Dtos.Ubicacion.NaveDto;
+import IG.application.Dtos.Ubicacion.ZonaDto;
 import IG.application.interfaces.IServicioUbicaciones;
 import IG.domain.Clases.Nave;
 import IG.domain.Clases.Ubicacion;

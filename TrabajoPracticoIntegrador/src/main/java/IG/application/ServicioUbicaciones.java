@@ -1,8 +1,8 @@
 package IG.application;
 
-import IG.application.Dtos.NaveDto;
-import IG.application.Dtos.UbicacionDto;
-import IG.application.Dtos.ZonaDto;
+import IG.application.Dtos.Ubicacion.NaveDto;
+import IG.application.Dtos.Ubicacion.UbicacionDto;
+import IG.application.Dtos.Ubicacion.ZonaDto;
 import IG.application.interfaces.IServicioUbicaciones;
 import IG.config.ConexionBD;
 import IG.domain.Clases.Nave;
@@ -92,11 +92,7 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
         try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
             List<Zona> zonas = prodUbiDao.buscarZonasPorNaveId(idNave, 1, 100);
-            return zonas.stream().map(z -> new ZonaDto(
-                    z.getId(),
-                    z.getTipo().getDescripcion(),
-                    new NaveDto(z.getNave().getId())
-                    )).toList();
+            return zonas.stream().map(ZonaDto::map).toList();
         } catch (SQLException exception) {
             String error = "Error al obtener las zonas: " + exception.getMessage();
             System.out.println(error);
@@ -112,11 +108,8 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
                     nuevaUbi.getId(),
                     nuevaUbi.getNroEstanteria(),
                     nuevaUbi.getNroNivel(),
-                    new ZonaDto(
-                            nuevaUbi.getZona().getId(),
-                            nuevaUbi.getZona().getTipo().getDescripcion(),
-                            new NaveDto(nuevaUbi.getZona().getNave().getId())
-                    )
+                    nuevaUbi.getCapacidadUsada(),
+                    ZonaDto.map(nuevaUbi.getZona())
             );
         } catch (SQLException ex) {
             String error = "Error al intentar establecer conexion con la base de datos: ";
@@ -129,20 +122,29 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
         try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
             List<Ubicacion> ubicaciones = prodUbiDao.buscarUbicacionesPorZona(idZona);
-            return ubicaciones.stream().map(u -> new UbicacionDto(
-                    u.getId(),
-                    u.getNroEstanteria(),
-                    u.getNroNivel(),
-                    new ZonaDto(
-                            u.getZona().getId(),
-                            u.getZona().getTipo().getDescripcion(),
-                            new NaveDto(u.getZona().getNave().getId())
-                    )
-            )).toList();
+            return ubicaciones.stream().map(UbicacionDto::map).toList();
         } catch (SQLException exception) {
             String error = "Error al obtener las ubicaciones: " + exception.getMessage();
             System.out.println(error);
             throw new Exception(error, exception);
+        }
+    }
+
+    public List<UbicacionDto> listarUbicaciones() {
+        try(var conn = IG.config.ConexionBD.obtenerConexionBaseDatos()) {
+            ProductoUbicacionDAO dao = new ProductoUbicacionDAO(conn);
+            return dao.listarTodasUbicaciones().stream().map(UbicacionDto::map).toList();
+        } catch (Exception e) {
+            return java.util.Collections.emptyList();
+        }
+    }
+
+    public List<UbicacionDto> listarUbicacionesPorProducto(Integer idProducto) {
+        try(var conn =  IG.config.ConexionBD.obtenerConexionBaseDatos()) {
+            ProductoUbicacionDAO dao = new ProductoUbicacionDAO(conn);
+            return dao.listarUbicacionesPorProducto(idProducto).stream().map(UbicacionDto::map).toList();
+        }  catch (Exception e) {
+            return java.util.Collections.emptyList();
         }
     }
 }

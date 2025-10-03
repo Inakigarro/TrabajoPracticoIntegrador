@@ -1,7 +1,7 @@
 package IG.views;
 
-import IG.application.Dtos.ProductoDto;
-import IG.application.Dtos.TipoProductoDto;
+import IG.application.Dtos.Producto.ProductoDto;
+import IG.application.Dtos.Producto.TipoProductoDto;
 import IG.application.interfaces.IServicioProductos;
 import IG.application.ServicioProductosDao;
 

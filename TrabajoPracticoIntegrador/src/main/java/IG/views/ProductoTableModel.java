@@ -1,6 +1,6 @@
 package IG.views;
 
-import IG.application.Dtos.TipoProductoDto;
+import IG.application.Dtos.Producto.TipoProductoDto;
 
 import javax.swing.table.AbstractTableModel;
 

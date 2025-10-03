@@ -241,6 +241,45 @@ public class ProductoUbicacionDAO {
         return productos;
     }
 
+    public List<Producto> listarTodosProductos() throws SQLException {
+        List<Producto> productos = new ArrayList<>();
+        String sql = """
+            SELECT 
+                p.id AS p_id,
+                p.descripcion AS p_descripcion,
+                p.cantidad_unidad AS p_cantidad_unidad,
+                p.unidad_medida AS p_unidad_medida,
+                p.stock AS p_stock,
+                tp.id AS tp_id,
+                tp.descripcion AS tp_descripcion
+            FROM producto p
+            INNER JOIN tipo_producto tp ON p.id_tipo_producto = tp.id
+            ORDER BY p.id
+            """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Producto producto = new Producto();
+                producto.setId(rs.getInt("p_id"));
+                producto.setDescripcion(rs.getString("p_descripcion"));
+                producto.setCantidadUnidad(rs.getDouble("p_cantidad_unidad"));
+                producto.setUnidadMedida(rs.getString("p_unidad_medida"));
+                producto.setStock(rs.getDouble("p_stock"));
+
+                TipoProducto tipoProducto = new TipoProducto();
+                tipoProducto.setId(rs.getInt("tp_id"));
+                tipoProducto.setDescripcion(rs.getString("tp_descripcion"));
+                producto.setTipoProducto(tipoProducto);
+
+                productos.add(producto);
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al listar los productos: " + ex.getMessage());
+        }
+        return productos;
+    }
+
     // Operaciones Nave.
     public Nave insertarNave(Nave nave) throws SQLException {
         String sql = "INSERT INTO nave (id) VALUES (DEFAULT)";
@@ -629,9 +668,11 @@ public class ProductoUbicacionDAO {
                 u.nro_nivel AS u_nro_nivel,
                 u.capacidad_usada AS u_capacidad_usada,
                 z.id AS z_id,
-                z.tipo AS z_tipo
+                z.tipo AS z_tipo,
+                n.id as n_id
             FROM ubicacion u
             INNER JOIN zona z ON u.id_zona = z.id
+            INNER JOIN nave n ON z.id_nave = n.id
             ORDER BY u.id
             """;
 
@@ -649,12 +690,60 @@ public class ProductoUbicacionDAO {
                 zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo").toUpperCase()));
                 ubicacion.setZona(zona);
 
+                Nave nave = new Nave();
+                nave.setId(rs.getInt("n_id"));
+                zona.setNave(nave);
+
                 ubicaciones.add(ubicacion);
             }
         } catch (SQLException ex) {
             throw new SQLException("Error al listar las ubicaciones: " + ex.getMessage());
         }
         return ubicaciones;
+    }
+
+    public List<Ubicacion> listarUbicacionesPorProducto(Integer productoId) throws SQLException {
+        List<Ubicacion> ubicaciones = new ArrayList<>();
+        String sql = """
+            SELECT 
+                u.id AS u_id,
+                u.nro_estanteria AS u_nro_estanteria,
+                u.nro_nivel AS u_nro_nivel,
+                u.capacidad_usada AS u_capacidad_usada,
+                z.id AS z_id,
+                z.tipo AS z_tipo,
+                n.id as n_id
+            FROM ubicacion u
+            inner join producto_ubicacion pu on u.id = pu.id_ubicacion
+            Where pu.id_producto = ?
+        """;
+
+        try(PreparedStatement stmt = connection.prepareStatement(sql);) {
+            stmt.setInt(1, productoId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Ubicacion ubicacion = new Ubicacion();
+                ubicacion.setId(rs.getInt("u_id"));
+                ubicacion.setNroEstanteria(rs.getInt("u_nro_estanteria"));
+                ubicacion.setNroNivel(rs.getInt("u_nro_nivel"));
+                ubicacion.setCapacidadUsada(rs.getDouble("u_capacidad_usada"));
+
+                Zona zona = new Zona();
+                zona.setId(rs.getInt("z_id"));
+                zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo").toUpperCase()));
+                ubicacion.setZona(zona);
+
+                Nave nave = new Nave();
+                nave.setId(rs.getInt("n_id"));
+                zona.setNave(nave);
+
+                ubicaciones.add(ubicacion);
+            }
+
+            return ubicaciones;
+        } catch (SQLException ex) {
+            throw new SQLException("Error al listar las ubicaciones: " + ex.getMessage());
+        }
     }
 
     // Operaciones de inicializacion.
@@ -769,6 +858,7 @@ public class ProductoUbicacionDAO {
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 id_producto INT,
                 id_ubicacion INT,
+                stockProductoUbicacion DOUBLE DEFAULT 0,
                 FOREIGN KEY (id_producto) REFERENCES producto(id),
                 FOREIGN KEY (id_ubicacion) REFERENCES ubicacion(id)
             );
@@ -783,5 +873,55 @@ public class ProductoUbicacionDAO {
             System.out.println(error);
             throw new SQLException(error + ex.getMessage());
         }
+    }
+
+    // --- Movimientos de productos entre ubicaciones ---
+    public void insertarProductoEnUbicacion(Producto producto, Ubicacion ubicacion, double cantidad) throws SQLException {
+        String sql = "INSERT INTO producto_ubicacion (id_producto, id_ubicacion, cantidad) VALUES (?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE cantidad = cantidad + ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, producto.getId());
+            ps.setInt(2, ubicacion.getId());
+            ps.setDouble(3, cantidad);
+            ps.setDouble(4, cantidad);
+            ps.executeUpdate();
+        }
+    }
+
+    public void restarProductoEnUbicacion(Producto producto, Ubicacion ubicacion, double cantidad) throws SQLException {
+        double stock = getStockProducto(ubicacion, producto);
+        if (stock < cantidad) {
+            throw new SQLException("Stock insuficiente en la ubicación");
+        }
+        String sql = "UPDATE producto_ubicacion SET cantidad = cantidad - ? WHERE id_producto = ? AND id_ubicacion = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setDouble(1, cantidad);
+            ps.setInt(2, producto.getId());
+            ps.setInt(3, ubicacion.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    public void moverProductoEntreUbicaciones(Producto producto, Ubicacion origen, Ubicacion destino, double cantidad) throws SQLException {
+        double stockOrigen = getStockProducto(origen, producto);
+        if (stockOrigen < cantidad) {
+            throw new SQLException("Stock insuficiente en la ubicación de origen");
+        }
+        restarProductoEnUbicacion(producto, origen, cantidad);
+        insertarProductoEnUbicacion(producto, destino, cantidad);
+    }
+
+    public double getStockProducto(Ubicacion ubicacion, Producto producto) throws SQLException {
+        String sql = "SELECT cantidad FROM producto_ubicacion WHERE id_producto = ? AND id_ubicacion = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, producto.getId());
+            ps.setInt(2, ubicacion.getId());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("cantidad");
+                }
+            }
+        }
+        return 0.0;
     }
 }

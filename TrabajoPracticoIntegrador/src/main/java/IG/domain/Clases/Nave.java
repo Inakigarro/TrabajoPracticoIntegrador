@@ -1,5 +1,7 @@
 package IG.domain.Clases;
 
+import IG.application.Dtos.Ubicacion.NaveDto;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,5 +47,11 @@ public class Nave {
         for (Zona zona : zonas) {
             agregarZona(zona);
         }
+    }
+
+    public static Nave map(NaveDto dto) {
+        var nave = new Nave();
+        nave.setId(dto.id());
+        return nave;
     }
 }

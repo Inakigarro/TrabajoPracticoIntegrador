@@ -1,9 +1,7 @@
 package IG.views.ubicaciones;
 
-import IG.application.Dtos.NaveDto;
 import IG.application.ServicioUbicaciones;
 import IG.application.interfaces.IServicioUbicaciones;
-import IG.views.ubicaciones.forms.NaveForm;
 import IG.views.ubicaciones.forms.UbicacionesForm;
 import IG.views.ubicaciones.forms.ZonaForm;
 
@@ -13,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.util.Objects;
 
 public class UbicacionesView {
-    private static final String CARD_NAVE = "NAVE";
     private static final String CARD_ZONA = "ZONA";
     private static final String CARD_UBICACION = "UBICACION";
 
@@ -24,19 +21,28 @@ public class UbicacionesView {
         root.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 
         // Top: selector de entidad
-        var cbEntidad = new JComboBox<>(new String[]{"Nave", "Zona", "Ubicacion"});
+        var cbEntidad = new JComboBox<>(new String[]{"Zona", "Ubicacion"});
+        var naveButton = new JButton("Crear Nave");
+        naveButton.addActionListener(e -> {
+            try {
+                servicio.crearNave();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(root, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
         var top = new JPanel(new FlowLayout(FlowLayout.LEFT));
         top.add(new JLabel("Tipo de entidad:"));
         top.add(cbEntidad);
+        top.add(naveButton);
         root.add(top, BorderLayout.NORTH);
 
         // Center: cards
         var cards = new JPanel(new CardLayout());
-        var formNave = new NaveForm(servicio);
         var formZona = new ZonaForm(servicio);
         var formUbic = new UbicacionesForm(servicio);
 
-        cards.add(formNave, CARD_NAVE);
         cards.add(formZona, CARD_ZONA);
         cards.add(formUbic, CARD_UBICACION);
         root.add(cards, BorderLayout.CENTER);
@@ -53,7 +59,6 @@ public class UbicacionesView {
         cbEntidad.addActionListener((ActionEvent e) -> {
             var cl = (CardLayout) cards.getLayout();
             switch (Objects.toString(cbEntidad.getSelectedItem(), "")) {
-                case "Nave" -> cl.show(cards, CARD_NAVE);
                 case "Zona" -> cl.show(cards, CARD_ZONA);
                 default -> cl.show(cards, CARD_UBICACION);
             }
@@ -64,10 +69,6 @@ public class UbicacionesView {
             var sel = Objects.toString(cbEntidad.getSelectedItem(), "");
             try {
                 switch (sel) {
-                    case "Nave" -> {
-                        NaveDto n = servicio.crearNave();
-                        formNave.afterSave(n);
-                    }
                     case "Zona" -> {
                         var z = formZona.buildEntity();
                         servicio.crearZona(z);
