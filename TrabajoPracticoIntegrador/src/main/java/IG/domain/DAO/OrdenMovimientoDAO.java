@@ -71,12 +71,7 @@ public class OrdenMovimientoDAO {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    OrdenMovimiento om = new OrdenMovimiento();
-                    om.setId(rs.getInt("om_id"));
-                    om.setTipo(TipoMovimiento.fromDescripcion(rs.getString("om_tipo"))); // Usar la descripción del enum
-                    om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
-                    om.setEstado(EstadosOrdenes.fromDescripcion(rs.getString("om_estado")));
-                    return om;
+                    return mapRowToOrdenMovimiento(rs);
                 } else {
                     throw new SQLException("No se encontró una orden de movimiento con ID: " + id);
                 }
@@ -103,11 +98,7 @@ public class OrdenMovimientoDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 List<OrdenMovimiento> ordenMovimientos = new ArrayList<>();
                 while (rs.next()) {
-                    OrdenMovimiento om = new OrdenMovimiento();
-                    om.setId(rs.getInt("om_id"));
-                    om.setTipo(TipoMovimiento.fromDescripcion(rs.getString("om_tipo"))); // Usar la descripción del enum
-                    om.setEstado(EstadosOrdenes.fromDescripcion(rs.getString("om_estado")));
-                    om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
+                    OrdenMovimiento om = mapRowToOrdenMovimiento(rs);
                     ordenMovimientos.add(om);
                 }
                 return ordenMovimientos;
@@ -140,11 +131,7 @@ public class OrdenMovimientoDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 List<OrdenMovimiento> ordenMovimientos = new ArrayList<>();
                 while (rs.next()) {
-                    OrdenMovimiento om = new OrdenMovimiento();
-                    om.setId(rs.getInt("om_id"));
-                    om.setTipo(TipoMovimiento.fromDescripcion(rs.getString("om_tipo"))); // Usar la descripción del enum
-                    om.setEstado(EstadosOrdenes.fromDescripcion(rs.getString("om_estado")));
-                    om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
+                    OrdenMovimiento om = mapRowToOrdenMovimiento(rs);
                     ordenMovimientos.add(om);
                 }
                 return ordenMovimientos;
@@ -316,7 +303,7 @@ public class OrdenMovimientoDAO {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, orden.getTipo().name());
             stmt.setTimestamp(2, Timestamp.valueOf(orden.getFecha()));
-            stmt.setString(3, orden.getEstadoOrden().getEstado().name());
+            stmt.setString(3, orden.getEstado().getDescripcion());
             stmt.setInt(4, orden.getId());
             stmt.executeUpdate();
         }
@@ -331,12 +318,31 @@ public class OrdenMovimientoDAO {
     }
 
     private OrdenMovimiento mapRowToOrdenMovimiento(ResultSet rs) throws SQLException {
-        OrdenMovimiento o = new OrdenMovimiento();
-        o.setId(rs.getInt("id"));
-        o.setTipo(TipoMovimiento.fromDescripcion(rs.getString("tipo")));
-        o.setFecha(rs.getTimestamp("fecha").toLocalDateTime());
-        o.setEstado(EstadosOrdenes.fromDescripcion(rs.getString("estado"))); // se obtiene directamente del nombre en mayúsculas
-        return o;
+        OrdenMovimiento om = new OrdenMovimiento();
+        om.setId(rs.getInt("om_id"));
+        om.setTipo(TipoMovimiento.fromDescripcion(rs.getString("om_tipo"))); // Usar la descripción del enum
+        om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
+        String estadoStr = rs.getString("om_estado");
+        switch (estadoStr) {
+            case "Pendiente" -> {
+                om.setEstadoOrden(new PendienteEstado());
+                om.setEstado(EstadosOrdenes.PENDIENTE);
+            }
+            case "En Proceso" -> {
+                om.setEstadoOrden(new EnProcesoEstado());
+                om.setEstado(EstadosOrdenes.PROCESO);
+            }
+            case "Completado" -> {
+                om.setEstadoOrden(new CompletadaEstado());
+                om.setEstado(EstadosOrdenes.COMPLETADO);
+            }
+            case "Cancelado" -> {
+                om.setEstadoOrden(new CanceladaEstado());
+                om.setEstado(EstadosOrdenes.CANCELADO);
+            }
+            default -> throw new SQLException("Estado desconocido: " + estadoStr);
+        }
+        return om;
     }
 
     private void crearTablaOrdenMovimiento() throws SQLException {

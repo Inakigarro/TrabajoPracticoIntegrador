@@ -88,11 +88,17 @@ public class Ubicacion {
         return productos;
     }
 
-    public void addProducto(ProductoUbicacion producto) {
-        if (producto == null)
+    public void addProducto(ProductoUbicacion productoUbicacion) {
+        if (productoUbicacion == null)
             throw new IllegalArgumentException("El producto no puede ser nulo.");
+        this.productos.add(productoUbicacion);
 
-        this.productos.add(producto);
+        Producto producto = productoUbicacion.getProducto();
+        if (producto != null) {
+            double nuevoStock = producto.getStock() + productoUbicacion.getStockProductoUbicacion();
+            producto.setStock(nuevoStock);
+            producto.getUbicaciones().add(productoUbicacion);
+        }
     }
 
     public void addRangeProductos(List<ProductoUbicacion> productos) {

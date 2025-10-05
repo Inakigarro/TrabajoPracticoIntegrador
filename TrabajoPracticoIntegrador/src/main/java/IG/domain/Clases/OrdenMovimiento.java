@@ -65,7 +65,7 @@ import java.util.List;
     }
 
     public void setId(Integer id) {
-         if (id == null || id < 1)
+         if (id == null || id < 0)
             throw new IllegalArgumentException("El id no puede ser nulo.");
 
          this.id = id;

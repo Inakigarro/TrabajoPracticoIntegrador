@@ -71,6 +71,11 @@ public class ProductoUbicacion {
     public void sumarStock(double cantidad) {
         if (cantidad < 0) throw new IllegalArgumentException("La cantidad a sumar no puede ser negativa.");
         this.stockProductoUbicacion += cantidad;
+
+        if (this.producto != null) {
+            double nuevoStock = this.producto.getStock() + cantidad;
+            this.producto.setStock(nuevoStock);
+        }
     }
     public void restarStock(double cantidad) {
         if (cantidad < 0) throw new IllegalArgumentException("La cantidad a restar no puede ser negativa.");

@@ -6,9 +6,11 @@ import IG.application.Dtos.Ubicacion.ZonaDto;
 import IG.application.interfaces.IServicioUbicaciones;
 import IG.config.ConexionBD;
 import IG.domain.Clases.Nave;
+import IG.domain.Clases.Producto;
 import IG.domain.Clases.Ubicacion;
 import IG.domain.Clases.Zona;
 import IG.domain.DAO.ProductoUbicacionDAO;
+import IG.domain.Enums.TipoMovimiento;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -147,4 +149,28 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
             return java.util.Collections.emptyList();
         }
     }
+
+    public List<UbicacionDto> obtenerTodasLasUbicaciones() {
+        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
+            ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
+            List<Ubicacion> ubicaciones = prodUbiDao.listarTodasUbicaciones();
+            return ubicaciones.stream().map(UbicacionDto::map).toList();
+        } catch (SQLException exception) {
+            String error = "Error al obtener las ubicaciones: " + exception.getMessage();
+            System.out.println(error);
+            return new ArrayList<>();
+        }
+    }
+
+    public void insertarProductoUbicacion(Producto producto, Ubicacion ubicacion, Double cantidad, Boolean esSalida) throws Exception {
+        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
+            ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
+            prodUbiDao.insertarProductoEnUbicacion(producto, ubicacion, cantidad, esSalida);
+        } catch (SQLException ex) {
+            String error = "Error al intentar establecer conexion con la base de datos: ";
+            System.out.println(error);
+            throw new SQLException(error + ex.getMessage());
+        }
+    }
+
 }

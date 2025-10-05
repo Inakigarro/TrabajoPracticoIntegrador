@@ -85,7 +85,11 @@ public class OrdenMovimientoDetalleView extends JFrame {
         panelAgregar.add(btnAgregarDetalle);
         panelAgregar.add(btnGuardar);
         btnAgregarDetalle.addActionListener(e -> agregarDetalle());
-        btnGuardar.addActionListener(e -> guardarDetalles());
+        btnGuardar.addActionListener(e -> {
+            guardarDetalles();
+            this.setVisible(false);
+            this.dispose();
+        });
         // Ajustar tamaño máximo para que ocupe solo una fila
         panelAgregar.setMaximumSize(new Dimension(Integer.MAX_VALUE, panelAgregar.getPreferredSize().height));
         cmbProducto.setMaximumSize(new Dimension(120, 25));

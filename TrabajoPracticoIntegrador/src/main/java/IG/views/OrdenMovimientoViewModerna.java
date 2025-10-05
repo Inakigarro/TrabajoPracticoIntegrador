@@ -3,8 +3,6 @@ package IG.views;
 import IG.application.Dtos.OrdenMovimiento.OrdenMovimientoDto;
 import IG.application.ServicioOrdenMovimiento;
 import IG.application.interfaces.IServicioOrdenMovimiento;
-import IG.domain.Clases.OrdenMovimiento;
-import IG.domain.DAO.OrdenMovimientoDAO;
 import IG.domain.Enums.EstadosOrdenes;
 import IG.domain.Enums.TipoMovimiento;
 
@@ -12,7 +10,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,9 +19,7 @@ public class OrdenMovimientoViewModerna extends JFrame {
     private DefaultTableModel modeloTabla;
     private JTextField txtBuscarId;
     private JComboBox<TipoMovimiento> cmbTipo;
-    private JComboBox<EstadosOrdenes> cmbEstado;
-    private JButton btnCrear, btnBuscar, btnModificarEstado, btnActualizar, btnEliminar, btnRefrescar;
-    private JTextArea areaDetalle;
+    private JButton btnCrear, btnBuscar, btnModificarEstado, btnActualizar, btnCancelar, btnRefrescar;
 
     public OrdenMovimientoViewModerna() {
         this.servicio = new ServicioOrdenMovimiento();
@@ -47,12 +42,11 @@ public class OrdenMovimientoViewModerna extends JFrame {
 
         txtBuscarId = new JTextField(8);
         cmbTipo = new JComboBox<TipoMovimiento>(TipoMovimiento.values());
-        cmbEstado = new JComboBox<>(EstadosOrdenes.values());
         btnBuscar = new JButton("Buscar por ID");
         btnCrear = new JButton("Crear Orden");
         btnModificarEstado = new JButton("Modificar Estado");
         btnActualizar = new JButton("Actualizar");
-        btnEliminar = new JButton("Eliminar");
+        btnCancelar = new JButton("Cancelar");
         btnRefrescar = new JButton("Refrescar");
 
         gbc.gridx = 0; gbc.gridy = 0; panelAcciones.add(new JLabel("ID:"), gbc);
@@ -60,13 +54,11 @@ public class OrdenMovimientoViewModerna extends JFrame {
         gbc.gridx = 2; panelAcciones.add(btnBuscar, gbc);
         gbc.gridx = 3; panelAcciones.add(new JLabel("Tipo:"), gbc);
         gbc.gridx = 4; panelAcciones.add(cmbTipo, gbc);
-        gbc.gridx = 5; panelAcciones.add(new JLabel("Estado:"), gbc);
-        gbc.gridx = 6; panelAcciones.add(cmbEstado, gbc);
-        gbc.gridx = 7; panelAcciones.add(btnRefrescar, gbc);
-        gbc.gridx = 8; panelAcciones.add(btnCrear, gbc);
-        gbc.gridx = 9; panelAcciones.add(btnModificarEstado, gbc);
-        gbc.gridx = 10; panelAcciones.add(btnActualizar, gbc);
-        gbc.gridx = 11; panelAcciones.add(btnEliminar, gbc);
+        gbc.gridx = 7; panelAcciones.add(btnCrear, gbc);
+        gbc.gridx = 8; panelAcciones.add(btnModificarEstado, gbc);
+        gbc.gridx = 9; panelAcciones.add(btnActualizar, gbc);
+        gbc.gridx = 10; panelAcciones.add(btnRefrescar, gbc);
+        gbc.gridx = 11; panelAcciones.add(btnCancelar, gbc);
 
         add(panelAcciones, BorderLayout.NORTH);
 
@@ -87,7 +79,7 @@ public class OrdenMovimientoViewModerna extends JFrame {
         btnCrear.addActionListener(this::crearOrden);
         btnModificarEstado.addActionListener(this::modificarEstado);
         btnActualizar.addActionListener(this::actualizarOrden);
-        btnEliminar.addActionListener(this::eliminarOrden);
+        btnCancelar.addActionListener(this::cancelarOrden);
         tablaOrdenes.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -97,6 +89,50 @@ public class OrdenMovimientoViewModerna extends JFrame {
                     OrdenMovimientoDetalleView detalleView = new OrdenMovimientoDetalleView(servicio, id);
                     detalleView.setVisible(true);
                 }
+            }
+        });
+        btnCancelar.setEnabled(false);
+        tablaOrdenes.getSelectionModel().addListSelectionListener(e -> {
+            int fila = tablaOrdenes.getSelectedRow();
+            if (fila == -1) {
+                btnCancelar.setEnabled(false);
+                btnModificarEstado.setText("Modificar Estado");
+                return;
+            }
+            Object estadoObj = modeloTabla.getValueAt(fila, 3);
+            boolean isCancelado = false;
+            boolean isCompletado = false;
+            if (estadoObj instanceof EstadosOrdenes estado) {
+                isCancelado = estado == EstadosOrdenes.CANCELADO;
+                isCompletado = estado == EstadosOrdenes.COMPLETADO;
+                btnCancelar.setEnabled(estado == EstadosOrdenes.PENDIENTE || estado == EstadosOrdenes.PROCESO);
+                if (estado == EstadosOrdenes.PENDIENTE) {
+                    btnModificarEstado.setText("Aprobar");
+                } else if (estado == EstadosOrdenes.PROCESO) {
+                    btnModificarEstado.setText("Ejecutar");
+                } else {
+                    btnModificarEstado.setText("Modificar Estado");
+                }
+            } else if (estadoObj instanceof String estadoStr) {
+                isCancelado = "CANCELADO".equalsIgnoreCase(estadoStr);
+                isCompletado = "COMPLETADO".equalsIgnoreCase(estadoStr);
+                btnCancelar.setEnabled("PENDIENTE".equalsIgnoreCase(estadoStr) || "PROCESO".equalsIgnoreCase(estadoStr));
+                if ("PENDIENTE".equalsIgnoreCase(estadoStr)) {
+                    btnModificarEstado.setText("Aprobar");
+                } else if ("PROCESO".equalsIgnoreCase(estadoStr)) {
+                    btnModificarEstado.setText("Ejecutar");
+                } else {
+                    btnModificarEstado.setText("Modificar Estado");
+                }
+            } else {
+                btnCancelar.setEnabled(false);
+                btnModificarEstado.setText("Modificar Estado");
+            }
+            if (isCancelado || isCompletado) {
+                // Des-selecciona la fila si está cancelada o completada
+                tablaOrdenes.clearSelection();
+                btnCancelar.setEnabled(false);
+                btnModificarEstado.setText("Modificar Estado");
             }
         });
     }
@@ -116,7 +152,6 @@ public class OrdenMovimientoViewModerna extends JFrame {
             if (orden != null) {
                 modeloTabla.setRowCount(0);
                 modeloTabla.addRow(new Object[]{orden.id(), orden.tipo(), orden.fecha(), orden.estado()});
-                areaDetalle.setText(orden.toString());
             } else {
                 JOptionPane.showMessageDialog(this, "No se encontró la orden.");
             }
@@ -152,9 +187,8 @@ public class OrdenMovimientoViewModerna extends JFrame {
             return;
         }
         int id = (int) modeloTabla.getValueAt(fila, 0);
-        EstadosOrdenes nuevoEstado = EstadosOrdenes.fromDescripcion(((EstadosOrdenes) cmbEstado.getSelectedItem()).getDescripcion());
         try {
-            servicio.modificarEstado(id, nuevoEstado);
+            servicio.modificarEstado(id);
             cargarTabla();
             JOptionPane.showMessageDialog(this, "Estado modificado correctamente.");
         } catch (Exception ex) {
@@ -180,19 +214,31 @@ public class OrdenMovimientoViewModerna extends JFrame {
         }
     }
 
-    private void eliminarOrden(ActionEvent e) {
+    private void cancelarOrden(ActionEvent e) {
         int fila = tablaOrdenes.getSelectedRow();
         if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione una orden para eliminar.");
+            JOptionPane.showMessageDialog(this, "Seleccione una orden para cancelar.");
             return;
+        }
+        Object estadoObj = modeloTabla.getValueAt(fila, 3);
+        if (estadoObj instanceof EstadosOrdenes estado) {
+            if (estado == EstadosOrdenes.CANCELADO) {
+                JOptionPane.showMessageDialog(this, "No se puede cancelar una orden ya cancelada.");
+                return;
+            }
+        } else if (estadoObj instanceof String estadoStr) {
+            if ("CANCELADO".equalsIgnoreCase(estadoStr)) {
+                JOptionPane.showMessageDialog(this, "No se puede cancelar una orden ya cancelada.");
+                return;
+            }
         }
         int id = (int) modeloTabla.getValueAt(fila, 0);
         try {
-            servicio.eliminarOrden(id);
+            servicio.cancelarOrden(id);
             cargarTabla();
-            JOptionPane.showMessageDialog(this, "Orden eliminada correctamente.");
+            JOptionPane.showMessageDialog(this, "Orden cancelada correctamente.");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al eliminar: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al cancelar: " + ex.getMessage());
         }
     }
 }

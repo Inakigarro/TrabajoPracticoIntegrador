@@ -875,53 +875,45 @@ public class ProductoUbicacionDAO {
         }
     }
 
-    // --- Movimientos de productos entre ubicaciones ---
-    public void insertarProductoEnUbicacion(Producto producto, Ubicacion ubicacion, double cantidad) throws SQLException {
-        String sql = "INSERT INTO producto_ubicacion (id_producto, id_ubicacion, cantidad) VALUES (?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE cantidad = cantidad + ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, producto.getId());
-            ps.setInt(2, ubicacion.getId());
-            ps.setDouble(3, cantidad);
-            ps.setDouble(4, cantidad);
-            ps.executeUpdate();
-        }
-    }
+    public void insertarProductoEnUbicacion(Producto producto, Ubicacion ubicacion, double cantidad, boolean esSalida) throws SQLException {
+        try {
+            connection.setAutoCommit(false);
 
-    public void restarProductoEnUbicacion(Producto producto, Ubicacion ubicacion, double cantidad) throws SQLException {
-        double stock = getStockProducto(ubicacion, producto);
-        if (stock < cantidad) {
-            throw new SQLException("Stock insuficiente en la ubicación");
-        }
-        String sql = "UPDATE producto_ubicacion SET cantidad = cantidad - ? WHERE id_producto = ? AND id_ubicacion = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setDouble(1, cantidad);
-            ps.setInt(2, producto.getId());
-            ps.setInt(3, ubicacion.getId());
-            ps.executeUpdate();
-        }
-    }
+            String sqlPU = "INSERT INTO producto_ubicacion (id_producto, id_ubicacion, stockProductoUbicacion) VALUES (?, ?, ?) ";
 
-    public void moverProductoEntreUbicaciones(Producto producto, Ubicacion origen, Ubicacion destino, double cantidad) throws SQLException {
-        double stockOrigen = getStockProducto(origen, producto);
-        if (stockOrigen < cantidad) {
-            throw new SQLException("Stock insuficiente en la ubicación de origen");
-        }
-        restarProductoEnUbicacion(producto, origen, cantidad);
-        insertarProductoEnUbicacion(producto, destino, cantidad);
-    }
-
-    public double getStockProducto(Ubicacion ubicacion, Producto producto) throws SQLException {
-        String sql = "SELECT cantidad FROM producto_ubicacion WHERE id_producto = ? AND id_ubicacion = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, producto.getId());
-            ps.setInt(2, ubicacion.getId());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getDouble("cantidad");
-                }
+            if (esSalida){
+                sqlPU += "ON DUPLICATE KEY UPDATE stockProductoUbicacion =stockProductoUbicacion - ?";
+            } else {
+                sqlPU += "ON DUPLICATE KEY UPDATE stockProductoUbicacion =stockProductoUbicacion + ?";
             }
+            try (PreparedStatement ps = connection.prepareStatement(sqlPU)) {
+                ps.setInt(1, producto.getId());
+                ps.setInt(2, ubicacion.getId());
+                ps.setDouble(3, cantidad);
+                ps.setDouble(4, cantidad);
+                ps.executeUpdate();
+            }
+
+            String sqlProducto = "UPDATE producto SET stock = stock + ? WHERE id = ?";
+            try (PreparedStatement ps = connection.prepareStatement(sqlProducto)) {
+                ps.setDouble(1, cantidad);
+                ps.setInt(2, producto.getId());
+                ps.executeUpdate();
+            }
+
+            String sqlUbicacion = "UPDATE ubicacion SET capacidad_usada = capacidad_usada + ? WHERE id = ?";
+            try (PreparedStatement ps = connection.prepareStatement(sqlUbicacion)) {
+                ps.setDouble(1, cantidad);
+                ps.setInt(2, ubicacion.getId());
+                ps.executeUpdate();
+            }
+
+            connection.commit();
+        } catch (SQLException ex) {
+            connection.rollback();
+            throw ex;
+        } finally {
+            connection.setAutoCommit(true);
         }
-        return 0.0;
     }
 }

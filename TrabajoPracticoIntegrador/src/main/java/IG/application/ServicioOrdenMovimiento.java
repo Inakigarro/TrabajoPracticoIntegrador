@@ -5,7 +5,6 @@ import IG.application.Dtos.OrdenMovimiento.OrdenMovimientoDto;
 import IG.application.Dtos.OrdenMovimiento.DetalleMovimientoDto;
 import IG.config.ConexionBD;
 import IG.domain.Clases.*;
-import IG.domain.DAO.ProductoUbicacionDAO;
 import IG.domain.Enums.TipoMovimiento;
 import IG.domain.Enums.EstadosOrdenes;
 import IG.domain.DAO.OrdenMovimientoDAO;
@@ -22,7 +21,7 @@ public class ServicioOrdenMovimiento implements IServicioOrdenMovimiento {
 
     public OrdenMovimientoDto crearOrden(OrdenMovimientoDto ordenMovimientoDto) {
         OrdenMovimiento ordenMovimiento = OrdenMovimiento.map(ordenMovimientoDto);
-        try(var conn = IG.config.ConexionBD.obtenerConexionBaseDatos()) {
+        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             OrdenMovimientoDAO ordenMovimientoDAO = new OrdenMovimientoDAO(conn);
             logger.info(String.format("Creando Orden de Movimiento: %s",  ordenMovimiento));
             ordenMovimientoDAO.insertarOrdenMovimiento(ordenMovimiento);
@@ -43,7 +42,7 @@ public class ServicioOrdenMovimiento implements IServicioOrdenMovimiento {
             OrdenMovimientoDAO ordenMovimientoDAO = new OrdenMovimientoDAO(conn);
             logger.info(String.format("Listando %d detalles", pageSize));
             return ordenMovimientoDAO.listarOrdenMovimiento(pageSize, pageNumber)
-                    .stream().map(OrdenMovimientoDto::map).collect(Collectors.toList());
+                    .stream().map(OrdenMovimientoDto::map).toList();
         } catch (SQLException e) {
             logger.severe(String.format("Error listando %d detalles", pageSize));
             throw new RuntimeException("Error al listar las órdenes de movimiento: " + e.getMessage(), e);
@@ -89,21 +88,20 @@ public class ServicioOrdenMovimiento implements IServicioOrdenMovimiento {
         }
     }
 
-    public void modificarEstado(int id, EstadosOrdenes nuevoEstado) {
-        try(var conn = IG.config.ConexionBD.obtenerConexionBaseDatos()) {
+    public void modificarEstado(int id) {
+        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             OrdenMovimientoDAO ordenMovimientoDAO = new OrdenMovimientoDAO(conn);
             logger.info(String.format("Modificando Estado de orden: %d", id));
             OrdenMovimiento orden = ordenMovimientoDAO.buscarOrdenMovimientoPorId(id);
+            orden.agregarDetalles(ordenMovimientoDAO.buscarDetallesPorOrdenId(id));
             if (orden == null) throw new RuntimeException("Orden no encontrada");
-            switch (nuevoEstado) {
-                case PROCESO -> orden.aprobar();
-                case COMPLETADO -> orden.ejecutar();
-                case CANCELADO -> orden.cancelar();
-                case PENDIENTE -> throw new IllegalStateException("No se puede volver a pendiente una orden ya creada");
+            switch (orden.getEstado()) {
+                case PENDIENTE -> orden.aprobar();
+                case PROCESO -> orden.ejecutar();
                 default -> throw new IllegalArgumentException("Estado no soportado");
             }
             ordenMovimientoDAO.actualizar(orden);
-            logger.info(String.format("Orden de movimiento con Id %d paso al estado %s", id, nuevoEstado));
+            logger.info(String.format("Orden de movimiento con Id %d paso de estado correctamente", id));
         } catch (SQLException e) {
             logger.severe(String.format("Error al modificar Estado de orden: %d", id));
             throw new RuntimeException("Error al modificar el estado de la orden: " + e.getMessage(), e);
@@ -185,6 +183,21 @@ public class ServicioOrdenMovimiento implements IServicioOrdenMovimiento {
         } catch (IllegalArgumentException | SQLException e) {
             logger.severe(e.getMessage());
             throw e;
+        }
+    }
+
+    public void cancelarOrden(int id) {
+        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
+            OrdenMovimientoDAO ordenMovimientoDAO = new OrdenMovimientoDAO(conn);
+            logger.info(String.format("Cancelando Orden de Movimiento: %d", id));
+            OrdenMovimiento orden = ordenMovimientoDAO.buscarOrdenMovimientoPorId(id);
+            if (orden == null) throw new RuntimeException("Orden no encontrada");
+            orden.cancelar();
+            ordenMovimientoDAO.actualizar(orden);
+            logger.info(String.format("Orden de movimiento con Id %d cancelada correctamente", id));
+        } catch (SQLException e) {
+            logger.severe(String.format("Error al cancelar Orden de Movimiento: %d", id));
+            throw new RuntimeException("Error al cancelar la orden de movimiento: " + e.getMessage(), e);
         }
     }
 }

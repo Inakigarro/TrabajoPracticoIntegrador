@@ -14,9 +14,10 @@ public interface IServicioOrdenMovimiento {
     OrdenMovimientoDto buscarPorId(int id);
     List<OrdenMovimientoDto> listarPorTipo(TipoMovimiento tipo);
     List<OrdenMovimientoDto> listarPorEstado(EstadosOrdenes estado);
-    void modificarEstado(int id, EstadosOrdenes nuevoEstado);
+    void modificarEstado(int id);
     void actualizarOrden(OrdenMovimientoDto ordenMovimientoDto);
     void eliminarOrden(int id);
     List<DetalleMovimientoDto> listarDetallesPorOrden(int ordenId);
     void actualizarDetallesOrdenMovimiento(Integer orderId, List<DetalleMovimientoDto> detalles) throws IllegalArgumentException, SQLException;
+    void cancelarOrden(int id);
 }

@@ -1,5 +1,8 @@
 package IG.domain.Clases;
 
+import IG.application.Dtos.Ubicacion.UbicacionDto;
+import IG.application.ServicioUbicaciones;
+import IG.application.interfaces.IServicioUbicaciones;
 import IG.domain.Enums.EstadosOrdenes;
 
 public class PendienteEstado implements EstadoOrdenMovimiento {
