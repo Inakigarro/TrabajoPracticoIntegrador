@@ -30,8 +30,6 @@ public enum TipoZona {
 
     @Override
     public String toString() {
-        return "TipoZona{" +
-                "descripcion='" + descripcion + '\'' +
-                '}';
+        return getDescripcion();
     }
 }

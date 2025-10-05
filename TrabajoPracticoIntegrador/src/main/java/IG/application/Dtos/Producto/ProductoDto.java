@@ -1,12 +1,13 @@
 package IG.application.Dtos.Producto;
 
 import IG.domain.Clases.Producto;
+import IG.domain.Enums.ProductoUnidades;
 
 public record ProductoDto(
         Integer id,
         String descripcion,
         double cantidadUnidad,
-        String unidadMedida,
+        ProductoUnidades unidadMedida,
         Double stock,
         TipoProductoDto tipoProducto) {
     public static ProductoDto map(Producto producto) {
@@ -16,10 +17,18 @@ public record ProductoDto(
                 producto.getCantidadUnidad(),
                 producto.getUnidadMedida(),
                 producto.getStock(),
-                new TipoProductoDto(
-                        producto.getTipoProducto().getId(),
-                        producto.getTipoProducto().getDescripcion()
-                )
+                TipoProductoDto.map(producto.getTipoProducto())
+        );
+    }
+
+    public static ProductoDto map(ProductoCache producto) {
+        return new ProductoDto(
+                producto.id,
+                producto.descripcion,
+                producto.cantidadUnidad,
+                producto.unidadMedida,
+                producto.stock,
+                producto.tipoProducto
         );
     }
 

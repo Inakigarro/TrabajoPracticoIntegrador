@@ -5,6 +5,7 @@ import IG.application.Dtos.OrdenMovimiento.OrdenMovimientoDto;
 import IG.application.Dtos.OrdenMovimiento.DetalleMovimientoDto;
 import IG.config.ConexionBD;
 import IG.domain.Clases.*;
+import IG.domain.DAO.ProductoUbicacionDAO;
 import IG.domain.Enums.TipoMovimiento;
 import IG.domain.Enums.EstadosOrdenes;
 import IG.domain.DAO.OrdenMovimientoDAO;
@@ -151,6 +152,7 @@ public class ServicioOrdenMovimiento implements IServicioOrdenMovimiento {
 
         try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             OrdenMovimientoDAO ordenDao = new OrdenMovimientoDAO(conn);
+            ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
             logger.info(String.format("Buscando orden de movimiento con id: %d", orderId));
             // Busco la orden de movimiento a modificar.
             OrdenMovimiento orden = ordenDao.buscarOrdenMovimientoPorId(orderId);
@@ -167,6 +169,13 @@ public class ServicioOrdenMovimiento implements IServicioOrdenMovimiento {
                     .toList();
 
             orden.agregarDetalles(detallesNuevos);
+            detallesNuevos.forEach(dn -> {
+                try {
+                    prodUbiDao.insertarProductoEnUbicacion(dn.getProducto(), dn.getUbicacion(), dn.getCantidad(), dn.esSalida());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             ordenDao.insertarDetalleOrdenMovimiento(detallesNuevos);
 
             // Busco los detalles a eliminar.

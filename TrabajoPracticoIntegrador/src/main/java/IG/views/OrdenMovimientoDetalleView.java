@@ -1,11 +1,17 @@
 package IG.views;
 
+import IG.application.Dtos.Producto.ProductoCache;
 import IG.application.Dtos.Producto.TipoProductoDto;
+import IG.application.Dtos.ProductoUbicacionCache;
+import IG.application.Dtos.ProductoUbicacionDto;
+import IG.application.Dtos.Ubicacion.UbicacionCache;
 import IG.application.ServicioProductosDao;
 import IG.application.interfaces.IServicioOrdenMovimiento;
 import IG.application.interfaces.IServicioProductos;
+import IG.application.utils.Converter;
 import IG.domain.Clases.Producto;
 import IG.domain.Clases.Ubicacion;
+import IG.domain.Constants.UbicacionConstants;
 import IG.domain.Enums.TipoMovimiento;
 import IG.application.Dtos.OrdenMovimiento.OrdenMovimientoDto;
 import IG.application.Dtos.OrdenMovimiento.DetalleMovimientoDto;
@@ -15,10 +21,14 @@ import IG.application.Dtos.Ubicacion.UbicacionDto;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class OrdenMovimientoDetalleView extends JFrame {
     private final IServicioOrdenMovimiento servicio;
+    private final List<UbicacionCache> ubicaciones = new ArrayList<>();
+    private final List<ProductoDto> productos = List.of();
+
     private final int ordenId;
     private OrdenMovimientoDto orden;
     private List<DetalleMovimientoDto> detalles;
@@ -75,9 +85,9 @@ public class OrdenMovimientoDetalleView extends JFrame {
         btnAgregarDetalle = new JButton("Agregar Detalle");
         btnGuardar = new JButton("Guardar");
         JPanel panelAgregar = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
-        panelAgregar.add(new JLabel("Producto:"));
+        panelAgregar.add(lblCmbProducto);
         panelAgregar.add(cmbProducto);
-        panelAgregar.add(new JLabel("Ubicación:"));
+        panelAgregar.add(lblCmbUbicacion);
         panelAgregar.add(cmbUbicacion);
         panelAgregar.add(new JLabel("Cantidad:"));
         panelAgregar.add(txtCantidad);
@@ -87,8 +97,6 @@ public class OrdenMovimientoDetalleView extends JFrame {
         btnAgregarDetalle.addActionListener(e -> agregarDetalle());
         btnGuardar.addActionListener(e -> {
             guardarDetalles();
-            this.setVisible(false);
-            this.dispose();
         });
         // Ajustar tamaño máximo para que ocupe solo una fila
         panelAgregar.setMaximumSize(new Dimension(Integer.MAX_VALUE, panelAgregar.getPreferredSize().height));
@@ -137,6 +145,8 @@ public class OrdenMovimientoDetalleView extends JFrame {
 
     private void cargarCombos() {
         try {
+            var ubicaciones = servicioUbicaciones.listarUbicaciones().stream().map(UbicacionCache::map).toList();
+            ubicaciones.forEach(this.ubicaciones::add);
             var productos = servicioProductos.obtenerProductos();
             cmbProducto.removeAllItems();
             if (productos != null) {
@@ -145,14 +155,13 @@ public class OrdenMovimientoDetalleView extends JFrame {
             cmbProducto.addActionListener(e -> actualizarUbicacionesPorProducto());
             actualizarUbicacionesPorProducto();
             switch (orden.tipo()) {
-                case INGRESO -> {
+                case INGRESO, EGRESO -> {
+                    lblCmbUbicacion.setVisible(false);
                     cmbUbicacion.setVisible(false);
                 }
                 case INTERNO -> {
+                    lblCmbUbicacion.setVisible(true);
                     cmbUbicacion.setVisible(true);
-                }
-                case EGRESO -> {
-                    cmbUbicacion.setVisible(false);
                 }
                 default -> cmbUbicacion.setVisible(true);
             }
@@ -179,29 +188,159 @@ public class OrdenMovimientoDetalleView extends JFrame {
 
     private void agregarDetalle() {
         try {
-            ProductoDto producto = null;
-            UbicacionDto ubicacion = null;
-            Object prodObj = cmbProducto.getSelectedItem();
-            Object ubiObj = cmbUbicacion.getSelectedItem();
-            if (prodObj instanceof ProductoDto) producto = (ProductoDto) prodObj;
-            else if (prodObj instanceof Producto) {
-                Producto p = (Producto) prodObj;
-                producto = new ProductoDto(p.getId(), p.getDescripcion(), p.getCantidadUnidad(), p.getUnidadMedida(), p.getStock(), TipoProductoDto.map(p.getTipoProducto()));
-            }
-            if (ubiObj instanceof UbicacionDto) ubicacion = (UbicacionDto) ubiObj;
-            else if (ubiObj instanceof Ubicacion) {
-                Ubicacion u = (Ubicacion) ubiObj;
-                ubicacion = UbicacionDto.map(u);
-            }
-            double cantidad = Double.parseDouble(txtCantidad.getText());
-            boolean esSalida = chkSalida.isSelected();
-            if (producto == null || (cmbUbicacion.isVisible() && ubicacion == null) || cantidad <= 0) {
+            Double cantidad = Double.parseDouble(txtCantidad.getText());
+            ProductoDto producto = (ProductoDto) cmbProducto.getSelectedItem();
+            if (producto == null || cantidad <= 0) {
                 JOptionPane.showMessageDialog(this, "Datos inválidos.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidad, producto, esSalida, ubicacion);
-            detalles.add(detalleDto);
-            cargarTablaDetalles();
+            Double cantidadPeso = calcularCantidadPeso(producto, cantidad);
+
+            switch (orden.tipo()) {
+                case INGRESO: {
+                    // Buscar ubicaciones disponibles para la cantidad en peso
+                    var ubicacionesDisponibles = this.filtrarUbicacionesDisponibles(this.ubicaciones, cantidadPeso);
+
+                    // Busco ubicaciones disponibles que ya tengan el producto seleccionado y las ordeno por capacidad usada.
+                    var ubicacionesConProducto = this.filtrarUbicacionesConProducto(ubicacionesDisponibles, producto.id())
+                            .stream()
+                            .sorted((u1, u2) -> Double.compare(u1.capacidadUsada, u2.capacidadUsada))
+                            .toList();
+
+                    // Mientras haya cantidad por ubicar y haya ubicaciones disponibles
+                    for (var ubicacion : ubicacionesConProducto) {
+                        if (cantidadPeso <= 0) break;
+                        double espacioDisponible = UbicacionConstants.UBICACION_CAPACIDAD_MAX - ubicacion.capacidadUsada;
+                        if (espacioDisponible <= 0) continue; // Si no hay espacio, sigo con la siguiente
+                        double cantidadAUbicar = Math.min(cantidadPeso, espacioDisponible);
+                        if (ubicacion.capacidadUsada + cantidadAUbicar < UbicacionConstants.UBICACION_CAPACIDAD_MAX) {
+                            Integer idProdUbi = ubicacion.productos.stream()
+                                    .sorted((pu1, pu2) -> pu2.id)
+                                    .findFirst().map(pu -> pu.id).orElse(null);
+                            if (idProdUbi == null) idProdUbi = 1; else idProdUbi += 1;
+
+                            ProductoUbicacionCache prodUbi = new ProductoUbicacionCache(idProdUbi, ProductoCache.map(producto), ubicacion, cantidadAUbicar);
+                            ubicacion.capacidadUsada += cantidadAUbicar;
+                            ubicacion.productos.add(prodUbi);
+                        }
+                        DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidadAUbicar, producto, UbicacionDto.map(ubicacion), false);
+                        detalles.add(detalleDto);
+                        cantidadPeso -= cantidadAUbicar;
+                    }
+
+                    // Si queda cantidad por ubicar, busco en las ubicaciones vacías
+                    if (cantidadPeso > 0) {
+                        // Busco en las ubicaciones disponibles, que no contengan el producto y que tengan espacio disponible.
+                        Double finalCantidadPeso = cantidadPeso;
+                        var ubicacionesDisponiblesSinProducto = ubicacionesDisponibles.stream()
+                                .filter(ub -> !ubicacionesConProducto.contains(ub) && (ub.capacidadUsada - UbicacionConstants.UBICACION_CAPACIDAD_MAX) > finalCantidadPeso)
+                                .toList();
+
+                        for (var ubicacion : ubicacionesDisponiblesSinProducto) {
+                            if (cantidadPeso <= 0) break;
+                            double espacioDisponible = UbicacionConstants.UBICACION_CAPACIDAD_MAX;
+                            double cantidadAUbicar = Math.min(cantidadPeso, espacioDisponible);
+                            if (ubicacion.capacidadUsada + cantidadAUbicar < UbicacionConstants.UBICACION_CAPACIDAD_MAX) {
+                                Integer idProdUbi = ubicacion.productos.stream()
+                                        .sorted((pu1, pu2) -> pu2.id)
+                                        .findFirst().map(pu -> pu.id).orElse(null);
+                                if (idProdUbi == null) idProdUbi = 1; else idProdUbi += 1;
+
+                                ProductoUbicacionCache prodUbi = new ProductoUbicacionCache(idProdUbi, ProductoCache.map(producto), ubicacion, cantidadAUbicar);
+                                ubicacion.capacidadUsada += cantidadAUbicar;
+                                ubicacion.productos.add(prodUbi);
+                            }
+                            DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidadAUbicar, producto, UbicacionDto.map(ubicacion), false);
+                            detalles.add(detalleDto);
+                            cantidadPeso -= cantidadAUbicar;
+                        }
+
+                        // Si queda cantidad por ubicar, busco en las ubicaciones restantes.
+                        if (cantidadPeso <= 0) break;
+
+                        var ubicacionesRestantes = ubicacionesDisponibles.stream()
+                                .filter(ub -> !ubicacionesConProducto.contains(ub) && !ubicacionesDisponiblesSinProducto.contains(ub))
+                                .toList();
+
+                        for (var ubicacion : ubicacionesRestantes) {
+                            if (cantidadPeso <= 0) break;
+                            double espacioDisponible = UbicacionConstants.UBICACION_CAPACIDAD_MAX;
+                            double cantidadAUbicar = Math.min(cantidadPeso, espacioDisponible);
+                            if (ubicacion.capacidadUsada + cantidadAUbicar < UbicacionConstants.UBICACION_CAPACIDAD_MAX) {
+                                Integer idProdUbi = ubicacion.productos.stream()
+                                        .sorted((pu1, pu2) -> pu2.id)
+                                        .findFirst().map(pu -> pu.id).orElse(null);
+                                if (idProdUbi == null) idProdUbi = 1; else idProdUbi += 1;
+
+                                ProductoUbicacionCache prodUbi = new ProductoUbicacionCache(idProdUbi, ProductoCache.map(producto), ubicacion, cantidadAUbicar);
+                                ubicacion.capacidadUsada += cantidadAUbicar;
+                                ubicacion.productos.add(prodUbi);
+                            }
+                            DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidadAUbicar, producto, UbicacionDto.map(ubicacion), false);
+                            detalles.add(detalleDto);
+                            cantidadPeso -= cantidadAUbicar;
+                        }
+                    }
+                    if (cantidadPeso > 0) {
+                        JOptionPane.showMessageDialog(this, "No hay suficiente espacio en las ubicaciones para la cantidad especificada. Se agregó la cantidad que pudo ser ubicada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    }
+                    cargarTablaDetalles();
+                    return;
+                }
+                case EGRESO: {
+                    // Busco todas las ubicaciones con el producto seleccionado.
+                    var ubicacionesConProducto = servicioUbicaciones.listarUbicacionesPorProducto(producto.id());
+
+                    // Mientras haya cantidad por sacar y haya ubicaciones con el producto
+                    for (var ubicacion : ubicacionesConProducto) {
+                        if (cantidadPeso <= 0) break;
+                        // Cualculo la cantidad de producto en esa ubicacion.
+                        double cantidadEnUbicacion = ubicacion
+                                .productos().stream().filter(pu ->
+                                        pu.producto().id() == producto.id()).mapToDouble(ProductoUbicacionDto::stockProductoUbicacion).sum();
+                        if (cantidadEnUbicacion <= 0) continue; // Si no hay cantidad, sigo con la siguiente
+                        double cantidadASacar = Math.min(cantidadPeso, cantidadEnUbicacion);
+                        DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidadASacar, producto, ubicacion, true);
+                        detalles.add(detalleDto);
+                        cantidadPeso -= cantidadASacar;
+                    }
+
+                    if (cantidadPeso > 0) {
+                        JOptionPane.showMessageDialog(this, "No hay suficiente stock en las ubicaciones para la cantidad especificada. Se agregó la cantidad que pudo ser retirada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    }
+                    cargarTablaDetalles();
+                    return;
+                }
+                case INTERNO: {
+                    // Verifico que haya ubicacion seleccionada.
+                    UbicacionDto ubicacion = (UbicacionDto) cmbUbicacion.getSelectedItem();
+                    if (ubicacion == null) {
+                        JOptionPane.showMessageDialog(this, "Debe seleccionar una ubicación de origen.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Verifico que la ubicacion tenga el producto y la cantidad suficiente.
+                    double cantidadEnUbicacion = ubicacion
+                            .productos().stream().filter(pu ->
+                                    pu.producto().id() == producto.id()).mapToDouble(ProductoUbicacionDto::stockProductoUbicacion).sum();
+                    Boolean esSalida = chkSalida.isSelected();
+                    if (esSalida) {
+                        if (cantidadEnUbicacion < cantidad) {
+                            JOptionPane.showMessageDialog(this, "La ubicación seleccionada no tiene suficiente stock del producto.", "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    } else {
+                        double espacioDisponible = UbicacionConstants.UBICACION_CAPACIDAD_MAX - ubicacion.capacidadUsada();
+                        if (espacioDisponible < cantidadPeso) {
+                            JOptionPane.showMessageDialog(this, "La ubicación seleccionada no tiene suficiente espacio para la cantidad del producto.", "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+
+                    DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidad, producto, ubicacion, esSalida);
+                    detalles.add(detalleDto);
+                }
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al agregar detalle: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -215,9 +354,46 @@ public class OrdenMovimientoDetalleView extends JFrame {
             }
             servicio.actualizarDetallesOrdenMovimiento(this.ordenId, this.detalles);
             JOptionPane.showMessageDialog(this, "Detalles guardados correctamente.");
-            cargarDatos(); // Recarga desde base de datos
+            cargarDatos();
+            this.setVisible(false);
+            this.dispose();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al guardar detalles: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private Double calcularCantidadPeso(ProductoDto producto, Double cantidad) throws Exception {
+        if (producto == null || producto.cantidadUnidad() <= 0) {
+            return cantidad;
+        }
+
+        switch (producto.unidadMedida()) {
+            case KILOGRAMOS -> {
+                return cantidad * producto.cantidadUnidad();
+            }
+            case LITROS -> {
+                return cantidad * Converter.litroAKilogramo(producto.cantidadUnidad());
+            }
+            case GRAMOS -> {
+                return cantidad * Converter.gramoAKilogramo(producto.cantidadUnidad());
+            }
+            case MILILITROS -> {
+                return cantidad * Converter.mililitroAKilogramo(producto.cantidadUnidad());
+            }
+            default -> {
+                throw new IllegalArgumentException("Unidad de medida no soportada para conversión a peso.");
+            }
+        }
+    }
+
+    private List<UbicacionCache> filtrarUbicacionesDisponibles(List<UbicacionCache> ubicaciones, Double cantidadPeso) {
+        return ubicaciones.stream()
+                .filter(ub -> (UbicacionConstants.UBICACION_CAPACIDAD_MAX - ub.capacidadUsada) >= cantidadPeso)
+                .toList();
+    }
+    private List<UbicacionCache> filtrarUbicacionesConProducto(List<UbicacionCache> ubicaciones, Integer productoId) {
+        return ubicaciones.stream()
+                .filter(ub -> ub.productos.stream().anyMatch(pu -> pu.producto.id.equals(productoId)))
+                .toList();
     }
 }

@@ -8,7 +8,7 @@ import java.awt.*;
 
 public class UbicacionManagementView extends JFrame {
 
-    private final JComboBox<String> cmbNave = new JComboBox<>(new String[]{"Nave 1", "Nave 2", "Nave 3"}); //Suponiendo que se crearon en la BDD
+    private final JComboBox<String> cmbNave = new JComboBox<>(); //Suponiendo que se crearon en la BDD
     private final JTextField txtZona = new JTextField();
     private final JTextField txtEstanteria = new JTextField();
     private final JTextField txtNivel = new JTextField();
@@ -26,26 +26,9 @@ public class UbicacionManagementView extends JFrame {
         setLayout(new BorderLayout());
 
         JPanel formPanel = UbicacionesView.buildUI();
-//        JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
-//        formPanel.setBorder(BorderFactory.createTitledBorder("Alta de Ubicación"));
-//
-//        formPanel.add(new JLabel("Nave:"));
-//        formPanel.add(cmbNave);
-//        formPanel.add(new JLabel("Zona:"));
-//        formPanel.add(txtZona);
-//        formPanel.add(new JLabel("Estantería:"));
-//        formPanel.add(txtEstanteria);
-//        formPanel.add(new JLabel("Nivel:"));
-//        formPanel.add(txtNivel);
-//        formPanel.add(new JLabel("Capacidad (kg):"));
-//        formPanel.add(txtCapacidad);
-//
         JButton btnAgregar = new JButton("Agregar Ubicación");
         JButton btnEliminar = new JButton("Eliminar Seleccionada");
         JButton btnModificar = new JButton("Modificar Seleccionada");
-//
-//        formPanel.add(btnAgregar);
-//        formPanel.add(btnModificar);
 
         JScrollPane scrollPane = new JScrollPane(table);
 

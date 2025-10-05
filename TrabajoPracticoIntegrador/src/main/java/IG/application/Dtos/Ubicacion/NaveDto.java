@@ -8,4 +8,9 @@ public record NaveDto(Integer id) {
                 nave.getId()
         );
     }
+
+    @Override
+    public String toString() {
+        return "Nave " + id;
+    }
 }

@@ -2,6 +2,7 @@ package IG.domain.Clases;
 
 import IG.application.Dtos.Producto.ProductoDto;
 import IG.domain.Constants.ProductoConstants;
+import IG.domain.Enums.ProductoUnidades;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,7 @@ public class Producto {
     private Integer id;
     private String descripcion;
     private double cantidadUnidad;
-    private String unidadMedida;
+    private ProductoUnidades unidadMedida;
     private Double stock;
     private TipoProducto tipoProducto;
     private List<ProductoUbicacion> ubicaciones;
@@ -19,7 +20,7 @@ public class Producto {
         this.id = 0;
         this.descripcion = "";
         this.cantidadUnidad = 0.0;
-        this.unidadMedida = "";
+        this.unidadMedida = ProductoUnidades.SIN_DEFINIR;
         this.stock = 0.0;
         this.tipoProducto = null;
         this.ubicaciones = new ArrayList<ProductoUbicacion>();
@@ -28,13 +29,13 @@ public class Producto {
     public Producto(
             String descripcion,
             Double cantidadUnidad,
-            String unidadMedida,
+            ProductoUnidades unidadMedida,
             Double stock,
             TipoProducto tipoProducto) {
         this();
         this.setDescripcion(descripcion);
         this.setCantidadUnidad(cantidadUnidad);
-        this.unidadMedida = unidadMedida;
+        this.setUnidadMedida(unidadMedida);
         this.setStock(stock);
         this.setTipoProducto(tipoProducto);
     }
@@ -61,11 +62,14 @@ public class Producto {
         this.descripcion = descripcion;
     }
 
-    public String getUnidadMedida() {
+    public ProductoUnidades getUnidadMedida() {
         return unidadMedida;
     }
 
-    public void setUnidadMedida(String unidadMedida) {
+    public void setUnidadMedida(ProductoUnidades unidadMedida) {
+        if (unidadMedida == null || unidadMedida == ProductoUnidades.SIN_DEFINIR) {
+            throw new IllegalArgumentException("La unidad de medida no puede ser nula o sin definir.");
+        }
         this.unidadMedida = unidadMedida;
     }
 

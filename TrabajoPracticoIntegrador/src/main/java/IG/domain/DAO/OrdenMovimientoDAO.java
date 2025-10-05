@@ -1,18 +1,12 @@
 package IG.domain.DAO;
 
 import IG.domain.Clases.*;
-import IG.domain.Enums.EstadosOrdenes;
 import IG.domain.Enums.TipoMovimiento;
-import IG.domain.Enums.TipoZona;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/// <summary>
-/// DAO utilizado para gestionar las operaciones CRUD de la entidad OrdenMovimiento
-/// y DetalleOrdenMovimiento.
-/// </summary>
 public class OrdenMovimientoDAO {
 
     private final Connection conn;
@@ -30,12 +24,6 @@ public class OrdenMovimientoDAO {
         }
     }
 
-    // Operaciones Orden Movimiento.
-
-    /// <summary>
-    /// Inserta una nueva orden de movimiento en la base de datos.
-    /// El ID se genera automáticamente y se asigna al objeto OrdenMovimiento proporcionado.
-    /// </summary>
     public void insertarOrdenMovimiento(OrdenMovimiento ordenMovimiento) throws SQLException {
         String sql = "INSERT INTO orden_movimiento (tipo, fecha, estado) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -71,7 +59,7 @@ public class OrdenMovimientoDAO {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return mapRowToOrdenMovimiento(rs);
+                    return Mapper.mapRowToOrdenMovimiento(rs);
                 } else {
                     throw new SQLException("No se encontró una orden de movimiento con ID: " + id);
                 }
@@ -98,7 +86,7 @@ public class OrdenMovimientoDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 List<OrdenMovimiento> ordenMovimientos = new ArrayList<>();
                 while (rs.next()) {
-                    OrdenMovimiento om = mapRowToOrdenMovimiento(rs);
+                    OrdenMovimiento om = Mapper.mapRowToOrdenMovimiento(rs);
                     ordenMovimientos.add(om);
                 }
                 return ordenMovimientos;
@@ -131,7 +119,7 @@ public class OrdenMovimientoDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 List<OrdenMovimiento> ordenMovimientos = new ArrayList<>();
                 while (rs.next()) {
-                    OrdenMovimiento om = mapRowToOrdenMovimiento(rs);
+                    OrdenMovimiento om = Mapper.mapRowToOrdenMovimiento(rs);
                     ordenMovimientos.add(om);
                 }
                 return ordenMovimientos;
@@ -147,11 +135,8 @@ public class OrdenMovimientoDAO {
         }
     }
 
-    /// <summary>
-    /// Inserta un nuevo detalle de orden de movimiento en la base de datos.
-    /// El ID se genera automáticamente y se asigna al objeto DetalleMovimiento proporcionado.
-    /// </summary>
     public void insertarDetalleOrdenMovimiento(List<DetalleMovimiento> detallesMovimiento) throws SQLException {
+        if (detallesMovimiento == null || detallesMovimiento.isEmpty()) return;
         String sql = "INSERT INTO detalle_movimiento (id_producto, cantidad, id_orden_movimiento, id_ubicacion, es_salida) VALUES (?, ?, ?, ?, ?)";
         Boolean autoCommitPrevio = conn.getAutoCommit();
         conn.setAutoCommit(false);
@@ -160,6 +145,9 @@ public class OrdenMovimientoDAO {
             Integer pendientes = 0;
 
             for (DetalleMovimiento detalleMovimiento : detallesMovimiento) {
+
+
+
                 stmt.setInt(1, detalleMovimiento.getProducto().getId());
                 stmt.setDouble(2, detalleMovimiento.getCantidad());
                 stmt.setInt(3, detalleMovimiento.getOrdenMovimiento().getId());
@@ -192,6 +180,10 @@ public class OrdenMovimientoDAO {
                 	dm.id_orden_movimiento AS dm_id_orden_movimiento,
                 	dm.id_ubicacion AS dm_id_ubicacion,
                 	dm.es_salida AS dm_es_salida,
+                	om.id AS om_id,
+                	om.tipo AS om_tipo,
+                	om.fecha AS om_fecha,
+                	om.estado AS om_estado,
                     p.id AS p_id,
                     p.descripcion AS p_descripcion,
                     p.cantidad_unidad AS p_cantidad_unidad,
@@ -207,6 +199,7 @@ public class OrdenMovimientoDAO {
                 	z.tipo AS z_tipo,
                 	n.id AS n_id
                 FROM detalle_movimiento dm
+                INNER JOIN orden_movimiento om ON dm.id_orden_movimiento = om.id
                 INNER JOIN producto p ON dm.id_producto = p.id
                 INNER JOIN tipo_producto tp ON p.id_tipo_producto = tp.id
                 INNER JOIN ubicacion u ON dm.id_ubicacion = u.id
@@ -220,40 +213,7 @@ public class OrdenMovimientoDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 List<DetalleMovimiento> detalles = new ArrayList<>();
                 while (rs.next()) {
-                    Nave nave = new Nave();
-                    nave.setId(rs.getInt("n_id"));
-
-                    Zona zona = new Zona();
-                    zona.setId(rs.getInt("z_id"));
-                    zona.setTipo(TipoZona.fromDescription(rs.getString("z_tipo")));
-                    zona.setNave(nave);
-
-                    Ubicacion ubicacion = new Ubicacion();
-                    ubicacion.setId(rs.getInt("u_id"));
-                    ubicacion.setNroEstanteria(rs.getInt("u_nro_estanteria"));
-                    ubicacion.setNroNivel(rs.getInt("u_nro_nivel"));
-                    ubicacion.setCapacidadUsada(rs.getDouble("u_capacidad_usada"));
-                    ubicacion.setZona(zona);
-
-                    TipoProducto tipoProducto = new TipoProducto();
-                    tipoProducto.setId(rs.getInt("tp_id"));
-                    tipoProducto.setDescripcion(rs.getString("tp_descripcion"));
-
-                    Producto producto = new Producto();
-                    producto.setId(rs.getInt("p_id"));
-                    producto.setDescripcion(rs.getString("p_descripcion"));
-                    producto.setCantidadUnidad(rs.getDouble("p_cantidad_unidad"));
-                    producto.setUnidadMedida(rs.getString("p_unidad_medida"));
-                    producto.setStock(rs.getDouble("p_stock"));
-                    producto.setTipoProducto(tipoProducto);
-
-                    DetalleMovimiento dm = new DetalleMovimiento();
-                    dm.setId(rs.getInt("dm_id"));
-                    dm.setCantidad(rs.getDouble("dm_cantidad"));
-                    dm.setEsSalida(rs.getBoolean("dm_es_salida"));
-                    dm.setUbicacion(ubicacion);
-                    dm.setProducto(producto);
-
+                    DetalleMovimiento dm = Mapper.mapRowToDetalleMovimiento(rs);
                     detalles.add(dm);
                 }
                 return detalles;
@@ -315,34 +275,6 @@ public class OrdenMovimientoDAO {
             stmt.setInt(1, id);
             stmt.executeUpdate();
         }
-    }
-
-    private OrdenMovimiento mapRowToOrdenMovimiento(ResultSet rs) throws SQLException {
-        OrdenMovimiento om = new OrdenMovimiento();
-        om.setId(rs.getInt("om_id"));
-        om.setTipo(TipoMovimiento.fromDescripcion(rs.getString("om_tipo"))); // Usar la descripción del enum
-        om.setFecha(rs.getTimestamp("om_fecha").toLocalDateTime());
-        String estadoStr = rs.getString("om_estado");
-        switch (estadoStr) {
-            case "Pendiente" -> {
-                om.setEstadoOrden(new PendienteEstado());
-                om.setEstado(EstadosOrdenes.PENDIENTE);
-            }
-            case "En Proceso" -> {
-                om.setEstadoOrden(new EnProcesoEstado());
-                om.setEstado(EstadosOrdenes.PROCESO);
-            }
-            case "Completado" -> {
-                om.setEstadoOrden(new CompletadaEstado());
-                om.setEstado(EstadosOrdenes.COMPLETADO);
-            }
-            case "Cancelado" -> {
-                om.setEstadoOrden(new CanceladaEstado());
-                om.setEstado(EstadosOrdenes.CANCELADO);
-            }
-            default -> throw new SQLException("Estado desconocido: " + estadoStr);
-        }
-        return om;
     }
 
     private void crearTablaOrdenMovimiento() throws SQLException {

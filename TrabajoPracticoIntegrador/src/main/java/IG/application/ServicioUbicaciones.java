@@ -79,17 +79,6 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
         }
     }
 
-    public List<Zona> obtenerZonas() {
-        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
-            ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
-            return prodUbiDao.buscarZonas(1, 100);
-        } catch (SQLException exception) {
-            String error = "Error al obtener las zonas: " + exception.getMessage();
-            System.out.println(error);
-            return new ArrayList<>();
-        }
-    }
-
     public List<ZonaDto> obtenerZonas(Integer idNave) {
         try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
@@ -111,7 +100,8 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
                     nuevaUbi.getNroEstanteria(),
                     nuevaUbi.getNroNivel(),
                     nuevaUbi.getCapacidadUsada(),
-                    ZonaDto.map(nuevaUbi.getZona())
+                    ZonaDto.map(nuevaUbi.getZona()),
+                    List.of()
             );
         } catch (SQLException ex) {
             String error = "Error al intentar establecer conexion con la base de datos: ";
@@ -157,6 +147,18 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
             return ubicaciones.stream().map(UbicacionDto::map).toList();
         } catch (SQLException exception) {
             String error = "Error al obtener las ubicaciones: " + exception.getMessage();
+            System.out.println(error);
+            return new ArrayList<>();
+        }
+    }
+
+    public List<UbicacionDto> obtenerUbicacionesDisponibles(Double cantidad) {
+        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
+            ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
+            List<Ubicacion> ubicaciones = prodUbiDao.listarUbicacionesDisponibles(cantidad);
+            return ubicaciones.stream().map(UbicacionDto::map).toList();
+        } catch (SQLException exception) {
+            String error = "Error al obtener las ubicaciones disponibles: " + exception.getMessage();
             System.out.println(error);
             return new ArrayList<>();
         }

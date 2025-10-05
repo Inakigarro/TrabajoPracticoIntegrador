@@ -13,35 +13,17 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class ServicioProductosDao implements IServicioProductos {
-    private ConexionBD conexionBD;
-
     public ServicioProductosDao() {
-        this.conexionBD = new ConexionBD();
+
     }
 
     @Override
     public ProductoDto crearProducto(ProductoDto productoDto) throws SQLException {
-        try(Connection conn = this.conexionBD.obtenerConexionBaseDatos()) {
+        try(Connection conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO productoUbicacionDAO = new ProductoUbicacionDAO(conn);
-            TipoProducto tipoProducto = productoUbicacionDAO.buscarTipoProductoPorId(productoDto.tipoProducto().id());
-            if (tipoProducto == null) {
-                tipoProducto = productoUbicacionDAO.insertarTipoProducto(productoDto.tipoProducto().descripcion());
-            }
-            Producto nuevoProducto = productoUbicacionDAO.insertarProducto(
-                    new Producto(productoDto.descripcion(),
-                            productoDto.cantidadUnidad(),
-                            productoDto.unidadMedida(),
-                            productoDto.stock(),
-                            tipoProducto)
-            );
-            return new ProductoDto(
-                    nuevoProducto.getId(),
-                    nuevoProducto.getDescripcion(),
-                    nuevoProducto.getCantidadUnidad(),
-                    nuevoProducto.getUnidadMedida(),
-                    nuevoProducto.getStock(),
-                    new TipoProductoDto(tipoProducto.getId(), tipoProducto.getDescripcion())
-            );
+
+            Producto nuevoProducto = productoUbicacionDAO.insertarProducto(Producto.map(productoDto));
+            return ProductoDto.map(nuevoProducto);
         } catch (SQLException exception) {
             String error = "Error al crear el producto: " + exception.getMessage();
             System.out.println(error);
@@ -50,8 +32,34 @@ public class ServicioProductosDao implements IServicioProductos {
     }
 
     @Override
+    public TipoProductoDto crearTipoProducto(String descripcion) throws SQLException {
+        try(Connection conn = ConexionBD.obtenerConexionBaseDatos()) {
+            ProductoUbicacionDAO productoUbicacionDAO = new ProductoUbicacionDAO(conn);
+            TipoProducto nuevoTipoProducto = productoUbicacionDAO.insertarTipoProducto(descripcion);
+            return new TipoProductoDto(nuevoTipoProducto.getId(), nuevoTipoProducto.getDescripcion());
+        } catch (SQLException exception) {
+            String error = "Error al crear el tipo de producto: " + exception.getMessage();
+            System.out.println(error);
+            throw new SQLException(error, exception);
+        }
+    }
+
+    @Override
+    public List<TipoProductoDto> obtenerTiposProductos() throws SQLException {
+        try(Connection conn = ConexionBD.obtenerConexionBaseDatos()) {
+            ProductoUbicacionDAO productoUbicacionDAO = new ProductoUbicacionDAO(conn);
+            List<TipoProducto> tiposProductos = productoUbicacionDAO.listarTodosTiposProductos();
+            return tiposProductos.stream().map(tp -> new TipoProductoDto(tp.getId(), tp.getDescripcion())).toList();
+        } catch (SQLException exception) {
+            String error = "Error al obtener los tipos de productos: " + exception.getMessage();
+            System.out.println(error);
+            throw new SQLException(error, exception);
+        }
+    }
+
+    @Override
     public List<ProductoDto> obtenerProductos() throws SQLException {
-        try(Connection conn = this.conexionBD.obtenerConexionBaseDatos()) {
+        try(Connection conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO productoUbicacionDAO = new ProductoUbicacionDAO(conn);
             List<Producto> productos = productoUbicacionDAO.listarTodosProductos();
             return productos.stream().map(ProductoDto::map).toList();

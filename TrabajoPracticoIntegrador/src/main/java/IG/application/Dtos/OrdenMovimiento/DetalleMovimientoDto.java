@@ -8,16 +8,16 @@ public record DetalleMovimientoDto(
     Integer id,
     Double cantidad,
     ProductoDto producto,
-    Boolean esSalida,
-    UbicacionDto ubicacion
+    UbicacionDto ubicacion,
+    Boolean esSalida
 ) {
     public static DetalleMovimientoDto map(DetalleMovimiento detalle) {
         return new DetalleMovimientoDto(
                 detalle.getId(),
                 detalle.getCantidad(),
                 ProductoDto.map(detalle.getProducto()),
-                detalle.esSalida(),
-                UbicacionDto.map(detalle.getUbicacion())
+                UbicacionDto.map(detalle.getUbicacion()),
+                detalle.esSalida()
         );
     }
 }
