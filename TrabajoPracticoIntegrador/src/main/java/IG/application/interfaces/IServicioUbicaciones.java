@@ -4,6 +4,7 @@ import IG.application.Dtos.Ubicacion.NaveDto;
 import IG.application.Dtos.Ubicacion.UbicacionDto;
 import IG.application.Dtos.Ubicacion.ZonaDto;
 import IG.domain.Clases.Producto;
+import IG.domain.Clases.ProductoUbicacion;
 import IG.domain.Clases.Ubicacion;
 import IG.domain.Clases.Zona;
 
@@ -23,4 +24,5 @@ public interface IServicioUbicaciones {
     public List<UbicacionDto> obtenerUbicacionesPorZonaId(Integer idZona) throws Exception;
     public List<UbicacionDto> obtenerTodasLasUbicaciones() throws SQLException;
     public void insertarProductoUbicacion(Producto producto, Ubicacion ubicacion, Double cantidad, Boolean esSalida) throws Exception;
+    public void actualizarProductoUbicacion(ProductoUbicacion productoUbicacion) throws Exception;
 }

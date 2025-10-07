@@ -5,10 +5,7 @@ import IG.application.Dtos.Ubicacion.UbicacionDto;
 import IG.application.Dtos.Ubicacion.ZonaDto;
 import IG.application.interfaces.IServicioUbicaciones;
 import IG.config.ConexionBD;
-import IG.domain.Clases.Nave;
-import IG.domain.Clases.Producto;
-import IG.domain.Clases.Ubicacion;
-import IG.domain.Clases.Zona;
+import IG.domain.Clases.*;
 import IG.domain.DAO.ProductoUbicacionDAO;
 import IG.domain.Enums.TipoMovimiento;
 
@@ -123,7 +120,7 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
     }
 
     public List<UbicacionDto> listarUbicaciones() {
-        try(var conn = IG.config.ConexionBD.obtenerConexionBaseDatos()) {
+        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO dao = new ProductoUbicacionDAO(conn);
             return dao.listarTodasUbicaciones().stream().map(UbicacionDto::map).toList();
         } catch (Exception e) {
@@ -152,18 +149,6 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
         }
     }
 
-    public List<UbicacionDto> obtenerUbicacionesDisponibles(Double cantidad) {
-        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
-            ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
-            List<Ubicacion> ubicaciones = prodUbiDao.listarUbicacionesDisponibles(cantidad);
-            return ubicaciones.stream().map(UbicacionDto::map).toList();
-        } catch (SQLException exception) {
-            String error = "Error al obtener las ubicaciones disponibles: " + exception.getMessage();
-            System.out.println(error);
-            return new ArrayList<>();
-        }
-    }
-
     public void insertarProductoUbicacion(Producto producto, Ubicacion ubicacion, Double cantidad, Boolean esSalida) throws Exception {
         try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
@@ -175,4 +160,14 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
         }
     }
 
+    public void actualizarProductoUbicacion(ProductoUbicacion productoUbicacion) throws Exception {
+        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
+            ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
+            prodUbiDao.actualizarProductoUbicacion(productoUbicacion);
+        } catch (SQLException ex) {
+            String error = "Error al intentar establecer conexion con la base de datos: ";
+            System.out.println(error);
+            throw new SQLException(error + ex.getMessage());
+        }
+    }
 }

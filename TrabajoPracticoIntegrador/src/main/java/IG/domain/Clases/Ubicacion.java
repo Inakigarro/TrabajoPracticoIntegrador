@@ -123,12 +123,7 @@ public class Ubicacion {
 
     public boolean tieneProducto(Producto producto) {
         if (producto == null) return false;
-        for (ProductoUbicacion pu : productos) {
-            if (pu.getProducto() != null && pu.getProducto().getId() == producto.getId()) {
-                return true;
-            }
-        }
-        return false;
+        return this.productos.stream().anyMatch(p -> p.getProducto().equals(producto));
     }
 
     public double getStockProducto(Producto producto) {

@@ -39,7 +39,6 @@ CREATE TABLE producto (
     descripcion VARCHAR(255),
     cantidad_unidad DOUBLE DEFAULT 0,
     unidad_medida VARCHAR(50),
-    contenido DOUBLE,
     stock DOUBLE DEFAULT 0,
     id_tipo_producto INT,
     FOREIGN KEY (id_tipo_producto) REFERENCES tipo_producto(id)

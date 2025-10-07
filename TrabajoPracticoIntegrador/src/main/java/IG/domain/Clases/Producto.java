@@ -142,4 +142,12 @@ public class Producto {
                 this.descripcion, this.cantidadUnidad, this.unidadMedida,
                 this.tipoProducto, this.stock);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Producto producto = (Producto) obj;
+        return id != null && id.equals(producto.id);
+    }
 }

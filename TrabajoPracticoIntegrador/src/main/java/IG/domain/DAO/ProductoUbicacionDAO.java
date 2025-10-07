@@ -585,37 +585,36 @@ public class ProductoUbicacionDAO {
     public List<Ubicacion> listarTodasUbicaciones() throws SQLException {
         List<Ubicacion> ubicaciones = new ArrayList<>();
         String sql = """
-            SELECT 
-                u.id AS u_id,
-                u.nro_estanteria AS u_nro_estanteria,
-                u.nro_nivel AS u_nro_nivel,
-                u.capacidad_usada AS u_capacidad_usada,
-                z.id AS z_id,
-                z.tipo AS z_tipo,
-                n.id as n_id
-            FROM ubicacion u
-            INNER JOIN zona z ON u.id_zona = z.id
-            INNER JOIN nave n ON z.id_nave = n.id
-            ORDER BY u.id
+            
+                SELECT
+                    u.id AS u_id,
+                    u.nro_estanteria AS u_nro_estanteria,
+                    u.nro_nivel AS u_nro_nivel,
+                    u.capacidad_usada AS u_capacidad_usada,
+                    z.id AS z_id,
+                    z.tipo AS z_tipo,
+                    n.id AS n_id,
+                     pu.id AS pu_id,
+                     pu.stockProductoUbicacion AS pu_stockProductoUbicacion,
+                     p.id AS p_id,
+                     p.descripcion AS p_descripcion,
+                     p.cantidad_unidad AS p_cantidad_unidad,
+                     p.unidad_medida AS p_unidad_medida,
+                     p.stock AS p_stock,
+                     tp.id AS tp_id,
+                     tp.descripcion AS tp_descripcion
+                 FROM ubicacion u
+                 INNER JOIN zona z ON u.id_zona = z.id
+                 INNER JOIN nave n ON z.id_nave = n.id
+                 INNER JOIN producto_ubicacion pu ON pu.id_ubicacion = u.id
+                 INNER JOIN producto p ON pu.id_producto = p.id
+                 INNER JOIN tipo_producto tp ON p.id_tipo_producto = tp.id
             """;
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                Ubicacion ubicacion = new Ubicacion();
-                ubicacion.setId(rs.getInt("u_id"));
-                ubicacion.setNroEstanteria(rs.getInt("u_nro_estanteria"));
-                ubicacion.setNroNivel(rs.getInt("u_nro_nivel"));
-                ubicacion.setCapacidadUsada(rs.getDouble("u_capacidad_usada"));
-
-                Zona zona = new Zona();
-                zona.setId(rs.getInt("z_id"));
-                zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo").toUpperCase()));
-                ubicacion.setZona(zona);
-
-                Nave nave = new Nave();
-                nave.setId(rs.getInt("n_id"));
-                zona.setNave(nave);
+                Ubicacion ubicacion = Mapper.mapRowToUbicacionCompleto(rs);
 
                 ubicaciones.add(ubicacion);
             }
@@ -660,16 +659,28 @@ public class ProductoUbicacionDAO {
     public List<Ubicacion> listarUbicacionesDisponibles(Double cantidad) throws SQLException {
         String sql = """
                 SELECT
-                	u.id AS u_id,
+                    u.id AS u_id,
                     u.nro_estanteria AS u_nro_estanteria,
                     u.nro_nivel AS u_nro_nivel,
                     u.capacidad_usada AS u_capacidad_usada,
                     z.id AS z_id,
                     z.tipo AS z_tipo,
-                    n.id AS n_id
+                    n.id AS n_id,
+                     pu.id AS pu_id,
+                     pu.stockProductoUbicacion AS pu_stockProductoUbicacion,
+                     p.id AS p_id,
+                     p.descripcion AS p_descripcion,
+                     p.cantidad_unidad AS p_cantidad_unidad,
+                     p.unidad_medida AS p_unidad_medida,
+                     p.stock AS p_stock,
+                     tp.id AS tp_id,
+                     tp.descripcion AS tp_descripcion
                 FROM ubicacion u
                 INNER JOIN zona z ON u.id_zona = z.id
                 INNER JOIN nave n ON z.id_nave = n.id
+                INNER JOIN producto_ubicacion pu ON pu.id_ubicacion = u.id
+                INNER JOIN producto p ON pu.id_producto = p.id
+                INNER JOIN tipo_producto tp ON pu.id_producto = tp.id
                 WHERE (? - u.capacidad_usada) > ?
                 """;
 
@@ -679,7 +690,7 @@ public class ProductoUbicacionDAO {
             stmt.setDouble(2, cantidad);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    Ubicacion ubicacion = Mapper.mapRowToUbicacion(rs);
+                    Ubicacion ubicacion = Mapper.mapRowToUbicacionCompleto(rs);
                     ubicaciones.add(ubicacion);
                 }
             } catch (SQLException e) {
@@ -695,6 +706,14 @@ public class ProductoUbicacionDAO {
     public void insertarProductoEnUbicacion(Producto producto, Ubicacion ubicacion, double cantidad, boolean esSalida) throws SQLException {
         try {
             connection.setAutoCommit(false);
+            String sql = "";
+            if (esSalida) {
+                sql = """
+                        UPDATE producto_ubicacion
+                        SET stockProductoUbicacion = stockProductoUbicacion - ?
+                        WHERE id_producto = ? AND id_ubicacion = 
+                        """;
+            }
 
             String sqlPU = "INSERT INTO producto_ubicacion (id_producto, id_ubicacion, stockProductoUbicacion) VALUES (?, ?, ?) ";
 
@@ -733,6 +752,25 @@ public class ProductoUbicacionDAO {
             connection.setAutoCommit(true);
         }
     }
+
+    public void actualizarProductoUbicacion(ProductoUbicacion productoUbicacion) throws SQLException {
+        String sql = """
+                    UPDATE producto_ubicacion
+                    set stockProductoUbicacion = ?
+                    WHERE id = ?
+                """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setDouble(1, productoUbicacion.getStockProductoUbicacion());
+            stmt.setInt(2, productoUbicacion.getId());
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("No se pudo actualizar el producto en la ubicación, no se afectaron filas.");
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al actualizar el producto en la ubicación: " + ex.getMessage());
+        }
+    }
+
 
     // Operaciones de inicializacion.
     private void crearTablaTipoProducto() throws SQLException {

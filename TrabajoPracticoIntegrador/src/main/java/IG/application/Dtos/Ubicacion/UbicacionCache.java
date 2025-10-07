@@ -1,9 +1,7 @@
 package IG.application.Dtos.Ubicacion;
 
-import IG.application.Dtos.ProductoUbicacionCache;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UbicacionCache {
     public Integer id;
@@ -11,7 +9,7 @@ public class UbicacionCache {
     public Integer nroNivel;
     public Double capacidadUsada;
     public ZonaDto zona;
-    public List<ProductoUbicacionCache> productos;
+    public Map<Integer, Double> productos;
 
     public UbicacionCache(Integer id, Integer nroEstanteria, Integer nroNivel, Double capacidadUsada, ZonaDto zona) {
         this.id = id;
@@ -19,7 +17,7 @@ public class UbicacionCache {
         this.nroNivel = nroNivel;
         this.capacidadUsada = capacidadUsada;
         this.zona = zona;
-        this.productos = new ArrayList<>();
+        this.productos = new HashMap<Integer, Double>();
     }
 
     public static UbicacionCache map(UbicacionDto ubicacion) {
@@ -32,8 +30,9 @@ public class UbicacionCache {
         );
 
         if (ubicacion.productos() != null && !ubicacion.productos().isEmpty()) {
-            cache.productos = ubicacion.productos()
-                    .stream().map(ProductoUbicacionCache::map).toList();
+            for (var producto : ubicacion.productos()) {
+                cache.productos.put(producto.producto().id(), producto.stockProductoUbicacion());
+            }
         }
 
         return cache;

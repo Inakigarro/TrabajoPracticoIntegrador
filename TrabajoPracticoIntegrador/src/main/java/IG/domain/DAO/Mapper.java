@@ -63,6 +63,27 @@ public class Mapper {
         return u;
     }
 
+    public static Ubicacion mapRowToUbicacionCompleto(ResultSet rs) throws SQLException {
+        Nave n = mapRowToNave(rs);
+
+        Zona z = mapRowToZona(rs);
+
+        TipoProducto tp = mapRowToTipoProducto(rs);
+
+        Producto p = mapRowToProducto(rs);
+
+        Ubicacion u = new Ubicacion();
+        u.setId(rs.getInt("u_id"));
+        u.setNroEstanteria(rs.getInt("u_nro_estanteria"));
+        u.setNroNivel(rs.getInt("u_nro_nivel"));
+        u.setCapacidadUsada(rs.getDouble("u_capacidad_usada"));
+        u.setZona(z);
+
+        ProductoUbicacion pu = mapRowToProductoUbicacion(rs);
+        u.addProducto(pu);
+        return u;
+    }
+
     public static ProductoUbicacion mapRowToProductoUbicacion(ResultSet rs) throws SQLException {
         Producto p = mapRowToProducto(rs);
         Ubicacion u = mapRowToUbicacion(rs);
@@ -70,7 +91,7 @@ public class Mapper {
         ProductoUbicacion pu = new ProductoUbicacion();
         pu.setProducto(p);
         pu.setUbicacion(u);
-        pu.setStock(rs.getDouble("pu_cantidad"));
+        pu.setStock(rs.getDouble("pu_stockProductoUbicacion"));
 
         return pu;
     }
@@ -105,7 +126,7 @@ public class Mapper {
 
     public static DetalleMovimiento mapRowToDetalleMovimiento(ResultSet rs) throws SQLException {
         Producto p = mapRowToProducto(rs);
-        Ubicacion u = mapRowToUbicacion(rs);
+        Ubicacion u = mapRowToUbicacionCompleto(rs);
         OrdenMovimiento om = mapRowToOrdenMovimiento(rs);
         DetalleMovimiento dm = new DetalleMovimiento();
         dm.setId(rs.getInt("dm_id"));

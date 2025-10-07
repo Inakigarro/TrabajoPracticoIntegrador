@@ -169,13 +169,6 @@ public class ServicioOrdenMovimiento implements IServicioOrdenMovimiento {
                     .toList();
 
             orden.agregarDetalles(detallesNuevos);
-            detallesNuevos.forEach(dn -> {
-                try {
-                    prodUbiDao.insertarProductoEnUbicacion(dn.getProducto(), dn.getUbicacion(), dn.getCantidad(), dn.esSalida());
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            });
             ordenDao.insertarDetalleOrdenMovimiento(detallesNuevos);
 
             // Busco los detalles a eliminar.

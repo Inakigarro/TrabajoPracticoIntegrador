@@ -159,8 +159,6 @@ public class OrdenMovimientoDAO {
                 if (pendientes % 100 == 0) {
                     stmt.executeBatch();
                 }
-
-                detalleMovimiento.aplicarMovimiento();
             }
 
             stmt.executeBatch();
@@ -184,20 +182,22 @@ public class OrdenMovimientoDAO {
                 	om.tipo AS om_tipo,
                 	om.fecha AS om_fecha,
                 	om.estado AS om_estado,
-                    p.id AS p_id,
-                    p.descripcion AS p_descripcion,
-                    p.cantidad_unidad AS p_cantidad_unidad,
-                	p.unidad_medida AS p_unidad_medida,
-                	p.stock AS p_stock,
-                	tp.id AS tp_id,
-                	tp.descripcion AS tp_descripcion,
-                    u.id AS u_id,
+                	u.id AS u_id,
                 	u.nro_estanteria AS u_nro_estanteria,
                 	u.nro_nivel AS u_nro_nivel,
                 	u.capacidad_usada AS u_capacidad_usada,
                 	z.id AS z_id,
                 	z.tipo AS z_tipo,
-                	n.id AS n_id
+                	n.id AS n_id,
+                	 pu.id AS pu_id,
+                	 pu.stockProductoUbicacion AS pu_stockProductoUbicacion,
+                	 p.id AS p_id,
+                	 p.descripcion AS p_descripcion,
+                	 p.cantidad_unidad AS p_cantidad_unidad,
+                	 p.unidad_medida AS p_unidad_medida,
+                	 p.stock AS p_stock,
+                	 tp.id AS tp_id,
+                	 tp.descripcion AS tp_descripcion
                 FROM detalle_movimiento dm
                 INNER JOIN orden_movimiento om ON dm.id_orden_movimiento = om.id
                 INNER JOIN producto p ON dm.id_producto = p.id
@@ -205,6 +205,7 @@ public class OrdenMovimientoDAO {
                 INNER JOIN ubicacion u ON dm.id_ubicacion = u.id
                 INNER JOIN zona z ON u.id_zona = z.id
                 INNER JOIN nave n ON z.id_nave = n.id
+                INNER JOIN producto_ubicacion pu ON pu.id_ubicacion = u.id
                 WHERE dm.id_orden_movimiento = ?
                 """;
 

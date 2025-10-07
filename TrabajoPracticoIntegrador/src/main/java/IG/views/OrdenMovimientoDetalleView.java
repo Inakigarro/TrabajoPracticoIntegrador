@@ -26,8 +26,7 @@ import java.util.List;
 
 public class OrdenMovimientoDetalleView extends JFrame {
     private final IServicioOrdenMovimiento servicio;
-    private final List<UbicacionCache> ubicaciones = new ArrayList<>();
-    private final List<ProductoDto> productos = List.of();
+    private List<UbicacionCache> ubicaciones = new ArrayList<>();
 
     private final int ordenId;
     private OrdenMovimientoDto orden;
@@ -117,6 +116,7 @@ public class OrdenMovimientoDetalleView extends JFrame {
 
     private void cargarDatos() {
         try {
+            this.ubicaciones = servicioUbicaciones.obtenerTodasLasUbicaciones().stream().map(UbicacionCache::map).toList();
             orden = servicio.buscarPorId(ordenId);
             detalles = servicio.listarDetallesPorOrden(ordenId);
             lblTipo.setText(orden.tipo().getDescripcion());
@@ -145,8 +145,6 @@ public class OrdenMovimientoDetalleView extends JFrame {
 
     private void cargarCombos() {
         try {
-            var ubicaciones = servicioUbicaciones.listarUbicaciones().stream().map(UbicacionCache::map).toList();
-            ubicaciones.forEach(this.ubicaciones::add);
             var productos = servicioProductos.obtenerProductos();
             cmbProducto.removeAllItems();
             if (productos != null) {
@@ -202,10 +200,7 @@ public class OrdenMovimientoDetalleView extends JFrame {
                     var ubicacionesDisponibles = this.filtrarUbicacionesDisponibles(this.ubicaciones, cantidadPeso);
 
                     // Busco ubicaciones disponibles que ya tengan el producto seleccionado y las ordeno por capacidad usada.
-                    var ubicacionesConProducto = this.filtrarUbicacionesConProducto(ubicacionesDisponibles, producto.id())
-                            .stream()
-                            .sorted((u1, u2) -> Double.compare(u1.capacidadUsada, u2.capacidadUsada))
-                            .toList();
+                    var ubicacionesConProducto = this.filtrarUbicacionesConProducto(ubicacionesDisponibles, producto.id());
 
                     // Mientras haya cantidad por ubicar y haya ubicaciones disponibles
                     for (var ubicacion : ubicacionesConProducto) {
@@ -214,14 +209,7 @@ public class OrdenMovimientoDetalleView extends JFrame {
                         if (espacioDisponible <= 0) continue; // Si no hay espacio, sigo con la siguiente
                         double cantidadAUbicar = Math.min(cantidadPeso, espacioDisponible);
                         if (ubicacion.capacidadUsada + cantidadAUbicar < UbicacionConstants.UBICACION_CAPACIDAD_MAX) {
-                            Integer idProdUbi = ubicacion.productos.stream()
-                                    .sorted((pu1, pu2) -> pu2.id)
-                                    .findFirst().map(pu -> pu.id).orElse(null);
-                            if (idProdUbi == null) idProdUbi = 1; else idProdUbi += 1;
-
-                            ProductoUbicacionCache prodUbi = new ProductoUbicacionCache(idProdUbi, ProductoCache.map(producto), ubicacion, cantidadAUbicar);
-                            ubicacion.capacidadUsada += cantidadAUbicar;
-                            ubicacion.productos.add(prodUbi);
+                            ubicacion.productos.put(producto.id(), cantidadAUbicar);
                         }
                         DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidadAUbicar, producto, UbicacionDto.map(ubicacion), false);
                         detalles.add(detalleDto);
@@ -241,14 +229,7 @@ public class OrdenMovimientoDetalleView extends JFrame {
                             double espacioDisponible = UbicacionConstants.UBICACION_CAPACIDAD_MAX;
                             double cantidadAUbicar = Math.min(cantidadPeso, espacioDisponible);
                             if (ubicacion.capacidadUsada + cantidadAUbicar < UbicacionConstants.UBICACION_CAPACIDAD_MAX) {
-                                Integer idProdUbi = ubicacion.productos.stream()
-                                        .sorted((pu1, pu2) -> pu2.id)
-                                        .findFirst().map(pu -> pu.id).orElse(null);
-                                if (idProdUbi == null) idProdUbi = 1; else idProdUbi += 1;
-
-                                ProductoUbicacionCache prodUbi = new ProductoUbicacionCache(idProdUbi, ProductoCache.map(producto), ubicacion, cantidadAUbicar);
-                                ubicacion.capacidadUsada += cantidadAUbicar;
-                                ubicacion.productos.add(prodUbi);
+                                ubicacion.productos.put(producto.id(), cantidadAUbicar);
                             }
                             DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidadAUbicar, producto, UbicacionDto.map(ubicacion), false);
                             detalles.add(detalleDto);
@@ -267,14 +248,7 @@ public class OrdenMovimientoDetalleView extends JFrame {
                             double espacioDisponible = UbicacionConstants.UBICACION_CAPACIDAD_MAX;
                             double cantidadAUbicar = Math.min(cantidadPeso, espacioDisponible);
                             if (ubicacion.capacidadUsada + cantidadAUbicar < UbicacionConstants.UBICACION_CAPACIDAD_MAX) {
-                                Integer idProdUbi = ubicacion.productos.stream()
-                                        .sorted((pu1, pu2) -> pu2.id)
-                                        .findFirst().map(pu -> pu.id).orElse(null);
-                                if (idProdUbi == null) idProdUbi = 1; else idProdUbi += 1;
-
-                                ProductoUbicacionCache prodUbi = new ProductoUbicacionCache(idProdUbi, ProductoCache.map(producto), ubicacion, cantidadAUbicar);
-                                ubicacion.capacidadUsada += cantidadAUbicar;
-                                ubicacion.productos.add(prodUbi);
+                                ubicacion.productos.put(producto.id(), cantidadAUbicar);
                             }
                             DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidadAUbicar, producto, UbicacionDto.map(ubicacion), false);
                             detalles.add(detalleDto);
@@ -289,18 +263,24 @@ public class OrdenMovimientoDetalleView extends JFrame {
                 }
                 case EGRESO: {
                     // Busco todas las ubicaciones con el producto seleccionado.
-                    var ubicacionesConProducto = servicioUbicaciones.listarUbicacionesPorProducto(producto.id());
+                    var ubicacionesConProducto = this.filtrarUbicacionesConProducto(this.ubicaciones, producto.id());
 
                     // Mientras haya cantidad por sacar y haya ubicaciones con el producto
                     for (var ubicacion : ubicacionesConProducto) {
                         if (cantidadPeso <= 0) break;
                         // Cualculo la cantidad de producto en esa ubicacion.
-                        double cantidadEnUbicacion = ubicacion
-                                .productos().stream().filter(pu ->
-                                        pu.producto().id() == producto.id()).mapToDouble(ProductoUbicacionDto::stockProductoUbicacion).sum();
+                        double cantidadEnUbicacion = ubicacion.productos.get(producto.id());
                         if (cantidadEnUbicacion <= 0) continue; // Si no hay cantidad, sigo con la siguiente
                         double cantidadASacar = Math.min(cantidadPeso, cantidadEnUbicacion);
-                        DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidadASacar, producto, ubicacion, true);
+                        if (cantidadEnUbicacion - cantidadASacar >= 0){
+                            ubicacion.capacidadUsada -= cantidadASacar;
+                            ubicacion.productos.put(producto.id(), cantidadEnUbicacion - cantidadASacar);
+                        } else {
+                            // Si la cantidad a sacar es igual o mayor a la cantidad en la ubicacion, elimino el producto de la ubicacion.
+                            ubicacion.capacidadUsada -= cantidadEnUbicacion;
+                            ubicacion.productos.remove(producto.id());
+                        }
+                        DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidadASacar, producto, UbicacionDto.map(ubicacion), true);
                         detalles.add(detalleDto);
                         cantidadPeso -= cantidadASacar;
                     }
@@ -393,7 +373,7 @@ public class OrdenMovimientoDetalleView extends JFrame {
     }
     private List<UbicacionCache> filtrarUbicacionesConProducto(List<UbicacionCache> ubicaciones, Integer productoId) {
         return ubicaciones.stream()
-                .filter(ub -> ub.productos.stream().anyMatch(pu -> pu.producto.id.equals(productoId)))
+                .filter(ub -> ub.productos.containsKey(productoId))
                 .toList();
     }
 }

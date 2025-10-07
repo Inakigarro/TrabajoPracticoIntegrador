@@ -14,7 +14,7 @@ public record UbicacionDto(
         ZonaDto zona,
         List<ProductoUbicacionDto> productos) {
     public static UbicacionDto map(Ubicacion ubicacion) {
-        List<ProductoUbicacionDto> productos = List.of();
+        List<ProductoUbicacionDto> productos = new ArrayList<>();
         var dto = new UbicacionDto(
                 ubicacion.getId(),
                 ubicacion.getNroEstanteria(),

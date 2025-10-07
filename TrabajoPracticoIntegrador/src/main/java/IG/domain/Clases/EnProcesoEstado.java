@@ -34,7 +34,13 @@ public class EnProcesoEstado implements EstadoOrdenMovimiento {
                 switch (orden.getTipo()) {
                     case INGRESO: {
                         if (!detalle.esSalida() && cantidad <= capacidadDisponible) {
-                            ProductoUbicacion prodUbi = new ProductoUbicacion(producto, ubicacion, cantidad);
+                            ProductoUbicacion prodUbi = ubicacion.getProductoUbicacionPorProductoId(producto.getId());
+                            if (prodUbi != null) {
+                                prodUbi.setStock(prodUbi.getStock() + cantidad);
+                                ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() + cantidad);
+                                servicioUbicaciones.actualizarProductoUbicacion(prodUbi);
+                            }
+                            prodUbi = new ProductoUbicacion(producto, ubicacion, cantidad);
                             ubicacion.addProducto(prodUbi);
                             ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() + cantidad);
                             servicioUbicaciones.insertarProductoUbicacion(producto, ubicacion, cantidad, detalle.esSalida());
@@ -50,7 +56,7 @@ public class EnProcesoEstado implements EstadoOrdenMovimiento {
                                 if (prodUbi != null && prodUbi.getStock() >= cantidad) {
                                     prodUbi.setStock(prodUbi.getStock() - cantidad);
                                     ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() - cantidad);
-                                    servicioUbicaciones.insertarProductoUbicacion(producto, ubicacion, -cantidad, detalle.esSalida());
+                                    servicioUbicaciones.actualizarProductoUbicacion(prodUbi);
                                 } else {
                                     throw new IllegalStateException("No hay suficiente stock del producto " + producto.getId() + " en la ubicación " + ubicacion.getId());
                                 }
@@ -64,10 +70,11 @@ public class EnProcesoEstado implements EstadoOrdenMovimiento {
                         if (detalle.esSalida() && cantidad > 0 && cantidad <= capacidadDisponible) {
                             if (ubicacion.tieneProducto(producto)) {
                                 ProductoUbicacion prodUbi = ubicacion.getProductoUbicacionPorProductoId(producto.getId());
+
                                 if (prodUbi != null && prodUbi.getStock() >= cantidad) {
                                     prodUbi.setStock(prodUbi.getStock() - cantidad);
                                     ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() - cantidad);
-                                    servicioUbicaciones.insertarProductoUbicacion(producto, ubicacion, -cantidad, detalle.esSalida());
+                                    servicioUbicaciones.actualizarProductoUbicacion(prodUbi);
                                 } else {
                                     throw new IllegalStateException("No hay suficiente stock del producto " + producto.getId() + " en la ubicación " + ubicacion.getId());
                                 }
