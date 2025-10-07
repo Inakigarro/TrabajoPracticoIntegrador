@@ -30,8 +30,8 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
     public List<NaveDto> obtenerNaves() {
         try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
-            List<Nave> naves = prodUbiDao.listarNaves(1, 100);
-            return naves.stream().map(n -> new NaveDto(n.getId())).toList();
+            List<Nave> naves = prodUbiDao.listarNaves();
+            return naves.stream().map(NaveDto::map).toList();
         } catch (SQLException exception) {
             String error = "Error al obtener las naves: " + exception.getMessage();
             System.out.println(error);
@@ -78,7 +78,7 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
     public List<ZonaDto> obtenerZonas(Integer idNave) {
         try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
-            List<Zona> zonas = prodUbiDao.buscarZonasPorNaveId(idNave, 1, 100);
+            List<Zona> zonas = prodUbiDao.buscarZonasPorNaveId(idNave);
             return zonas.stream().map(ZonaDto::map).toList();
         } catch (SQLException exception) {
             String error = "Error al obtener las zonas: " + exception.getMessage();
