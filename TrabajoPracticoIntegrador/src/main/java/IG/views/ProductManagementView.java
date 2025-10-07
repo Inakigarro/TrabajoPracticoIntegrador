@@ -34,6 +34,7 @@ public class ProductManagementView extends JFrame {
         setSize(600, 400);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout());
 
         JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
