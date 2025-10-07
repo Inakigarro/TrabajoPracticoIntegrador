@@ -21,7 +21,6 @@ public interface IServicioUbicaciones {
     public ZonaDto obtenerZonaPorId(Integer idZona);
     // Ubicaciones.
     public UbicacionDto crearUbicacion(Ubicacion ubicacion) throws Exception;
-    public List<UbicacionDto> obtenerUbicacionesPorZonaId(Integer idZona) throws Exception;
     public List<UbicacionDto> obtenerTodasLasUbicaciones() throws SQLException;
     public void insertarProductoUbicacion(Producto producto, Ubicacion ubicacion, Double cantidad, Boolean esSalida) throws Exception;
     public void actualizarProductoUbicacion(ProductoUbicacion productoUbicacion) throws Exception;

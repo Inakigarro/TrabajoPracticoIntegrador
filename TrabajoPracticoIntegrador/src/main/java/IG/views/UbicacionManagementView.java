@@ -1,5 +1,7 @@
 package IG.views;
 
+import IG.application.ServicioUbicaciones;
+import IG.application.interfaces.IServicioUbicaciones;
 import IG.views.ubicaciones.UbicacionesView;
 
 import javax.swing.*;
@@ -7,8 +9,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class UbicacionManagementView extends JFrame {
-
-    private final JComboBox<String> cmbNave = new JComboBox<>(); //Suponiendo que se crearon en la BDD
+    private final JComboBox<String> cmbNave = new JComboBox<>();
     private final JTextField txtZona = new JTextField();
     private final JTextField txtEstanteria = new JTextField();
     private final JTextField txtNivel = new JTextField();
@@ -43,6 +44,25 @@ public class UbicacionManagementView extends JFrame {
         btnEliminar.addActionListener(e -> eliminarUbicacion());
         btnModificar.addActionListener(e -> modificarUbicacion());
         table.getSelectionModel().addListSelectionListener(e -> cargarDesdeTabla());
+        cargarDatosTabla();
+    }
+
+    private void cargarDatosTabla() {
+        try{
+            IServicioUbicaciones servicio = new ServicioUbicaciones();
+            var ubicaciones = servicio.obtenerTodasLasUbicaciones();
+            for (var ubicacion : ubicaciones) {
+                tableModel.addRow(new Object[]{
+                        ubicacion.zona().nave().toString(),
+                        ubicacion.zona().toString(),
+                        ubicacion.nroEstanteria(),
+                        ubicacion.nroNivel(),
+                        ubicacion.capacidadUsada()
+                });
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar las ubicaciones: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void agregarUbicacion() {
@@ -60,6 +80,7 @@ public class UbicacionManagementView extends JFrame {
 
             tableModel.addRow(new Object[]{nave, zona, estanteria, nivel, capacidad});
             limpiarCampos();
+            cargarDatosTabla();
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Verificá que los campos Estantería, Nivel y Capacidad sean numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -71,6 +92,7 @@ public class UbicacionManagementView extends JFrame {
         if (fila != -1) {
             tableModel.removeRow(fila);
             limpiarCampos();
+            cargarDatosTabla();
         } else {
             JOptionPane.showMessageDialog(this, "Seleccioná una fila para eliminar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
         }
@@ -97,7 +119,7 @@ public class UbicacionManagementView extends JFrame {
                 tableModel.setValueAt(nivel, fila, 3);
                 tableModel.setValueAt(capacidad, fila, 4);
                 limpiarCampos();
-
+                cargarDatosTabla();
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Campos inválidos. Asegurate de ingresar números válidos.", "Error", JOptionPane.ERROR_MESSAGE);
             }

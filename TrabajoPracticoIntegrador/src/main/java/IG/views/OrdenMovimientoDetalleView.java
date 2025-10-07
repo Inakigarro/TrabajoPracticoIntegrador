@@ -1,16 +1,10 @@
 package IG.views;
-
-import IG.application.Dtos.Producto.ProductoCache;
-import IG.application.Dtos.Producto.TipoProductoDto;
-import IG.application.Dtos.ProductoUbicacionCache;
 import IG.application.Dtos.ProductoUbicacionDto;
 import IG.application.Dtos.Ubicacion.UbicacionCache;
 import IG.application.ServicioProductosDao;
 import IG.application.interfaces.IServicioOrdenMovimiento;
 import IG.application.interfaces.IServicioProductos;
 import IG.application.utils.Converter;
-import IG.domain.Clases.Producto;
-import IG.domain.Clases.Ubicacion;
 import IG.domain.Constants.UbicacionConstants;
 import IG.domain.Enums.TipoMovimiento;
 import IG.application.Dtos.OrdenMovimiento.OrdenMovimientoDto;

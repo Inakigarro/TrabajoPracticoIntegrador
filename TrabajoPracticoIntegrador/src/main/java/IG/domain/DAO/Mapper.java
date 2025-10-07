@@ -79,18 +79,40 @@ public class Mapper {
         u.setCapacidadUsada(rs.getDouble("u_capacidad_usada"));
         u.setZona(z);
 
-        ProductoUbicacion pu = mapRowToProductoUbicacion(rs);
+        ProductoUbicacion pu = mapRowToProductoUbicacionCompleto(rs);
         u.addProducto(pu);
         return u;
     }
 
-    public static ProductoUbicacion mapRowToProductoUbicacion(ResultSet rs) throws SQLException {
+    public static ProductoUbicacion mapRowToProductoUbicacionCompleto(ResultSet rs) throws SQLException {
         Producto p = mapRowToProducto(rs);
         Ubicacion u = mapRowToUbicacion(rs);
 
         ProductoUbicacion pu = new ProductoUbicacion();
         pu.setProducto(p);
         pu.setUbicacion(u);
+        pu.setStock(rs.getDouble("pu_stockProductoUbicacion"));
+
+        return pu;
+    }
+
+    public static ProductoUbicacion mapRowToProductoUbicacionSinProducto(ResultSet rs) throws SQLException {
+        Ubicacion u = mapRowToUbicacion(rs);
+
+        ProductoUbicacion pu = new ProductoUbicacion();
+        pu.setId(rs.getInt("pu_id"));
+        pu.setUbicacion(u);
+        pu.setStock(rs.getDouble("pu_stockProductoUbicacion"));
+
+        return pu;
+    }
+
+    public static ProductoUbicacion mapRowToProductoUbicacionSinUbicacion(ResultSet rs) throws SQLException {
+        Producto p = mapRowToProducto(rs);
+
+        ProductoUbicacion pu = new ProductoUbicacion();
+        pu.setId(rs.getInt("pu_id"));
+        pu.setProducto(p);
         pu.setStock(rs.getDouble("pu_stockProductoUbicacion"));
 
         return pu;

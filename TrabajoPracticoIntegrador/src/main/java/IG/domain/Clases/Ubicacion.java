@@ -12,7 +12,7 @@ public class Ubicacion {
     private Integer nroEstanteria;
     private Integer nroNivel;
     private double capacidadUsada;
-    private List<ProductoUbicacion> productos;
+    private final List<ProductoUbicacion> productos;
 
     public Ubicacion(Integer nroEstanteria, Integer nroNivel, Zona zona) {
         this();
@@ -102,8 +102,8 @@ public class Ubicacion {
     }
 
     public void addRangeProductos(List<ProductoUbicacion> productos) {
-        if (productos == null || productos.isEmpty()) {
-            throw new IllegalArgumentException("La lista de productos no puede ser nula ni vacía.");
+        if (productos == null) {
+            throw new IllegalArgumentException("La lista de productos no puede ser nula.");
         }
         this.productos.addAll(productos);
     }

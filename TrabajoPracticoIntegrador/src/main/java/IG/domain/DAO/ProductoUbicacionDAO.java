@@ -3,6 +3,7 @@ package IG.domain.DAO;
 import IG.domain.Clases.*;
 import IG.domain.Constants.UbicacionConstants;
 import IG.domain.Enums.TipoZona;
+import IG.persistence.ProductoUbicacionQueries;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -55,25 +56,6 @@ public class ProductoUbicacionDAO {
         }
     }
 
-    public TipoProducto buscarTipoProductoPorId(Integer id)  throws SQLException {
-        String sql = "SELECT * FROM tipo_producto WHERE id = ?";
-
-        try(PreparedStatement ps = connection.prepareStatement(sql)) {
-               ps.setInt(1, id);
-               try (ResultSet rs = ps.executeQuery()) {
-                   if (rs.next()) {
-                       TipoProducto tipoProducto = Mapper.mapRowToTipoProducto(rs);
-                       return tipoProducto;
-                   }
-               } catch (SQLException ex) {
-                   throw new SQLException("Error al obtener el tipo de producto: " + ex.getMessage());
-               }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al obtener el tipo de producto: " + ex.getMessage());
-        }
-        return null;
-    }
-
     public List<TipoProducto> listarTodosTiposProductos() {
         List<TipoProducto> tiposProductos = new ArrayList<>();
 
@@ -123,66 +105,6 @@ public class ProductoUbicacionDAO {
             }
         } catch (SQLException ex) {
             throw new SQLException("Error al insertar el producto: " + ex.getMessage());
-        }
-    }
-
-    public Producto buscarProductoPorId(int id) throws SQLException {
-        String sql = """
-            SELECT 
-                p.id,
-                p.descripcion,
-                p.cantidad_unidad,
-                p.unidad_medida,
-                p.stock,
-                tp.id,
-                tp.descripcion
-            FROM producto p
-            INNER JOIN tipo_producto tp ON p.id_tipo_producto = tp.id
-            WHERE id = ?""";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Producto producto = Mapper.mapRowToProducto(rs);
-                    return producto;
-                } else {
-                    throw new SQLException("No se encontró el producto con ID: " + id);
-                }
-            } catch (SQLException ex) {
-                throw new SQLException("Error al obtener el producto: " + ex.getMessage());
-            }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al obtener el producto: " + ex.getMessage());
-        }
-    }
-
-    public void actualizarProducto(Producto producto) throws SQLException {
-        String sql = """
-            UPDATE producto
-            SET 
-                descripcion = ?,
-                cantidad_unidad = ?,
-                unidad_medida = ?,
-                stock = ?,
-                id_tipo_producto = ?
-            WHERE id = ?
-            """;
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, producto.getDescripcion());
-            stmt.setDouble(2, producto.getCantidadUnidad());
-            stmt.setString(3, producto.getUnidadMedida().getDescripcion());
-            stmt.setDouble(4, producto.getStock());
-            stmt.setInt(5, producto.getTipoProducto().getId());
-            stmt.setInt(6, producto.getId());
-
-            int affectedRows = stmt.executeUpdate();
-            if (affectedRows == 0) {
-                throw new SQLException("No se pudo actualizar el producto, no se afectaron filas.");
-            }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al actualizar el producto: " + ex.getMessage());
         }
     }
 
@@ -239,31 +161,6 @@ public class ProductoUbicacionDAO {
         }
     }
 
-    public Nave buscarNavePorId(Integer id) throws SQLException {
-        String sql = """
-                SELECT
-                    id as n_id,
-                FROM nave
-                WHERE id = ?
-            """;
-
-        try(PreparedStatement ps = connection.prepareStatement(sql)) {
-               ps.setInt(1, id);
-               try (ResultSet rs = ps.executeQuery()) {
-                   if (rs.next()) {
-                       Nave nave = Mapper.mapRowToNave(rs);
-                       return nave;
-                   } else {
-                       throw new SQLException("No se encontró la nave con ID: " + id);
-                   }
-               } catch (SQLException ex) {
-                   throw new SQLException("Error al obtener la nave: " + ex.getMessage());
-               }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al obtener la nave: " + ex.getMessage());
-        }
-    }
-
     public List<Nave> listarNaves(Integer pageNumber, Integer pageSize) throws SQLException {
         List<Nave> naves = new ArrayList<>();
         String sql = """
@@ -288,47 +185,6 @@ public class ProductoUbicacionDAO {
             }
         } catch (SQLException ex) {
             throw new SQLException("Error al listar las naves: " + ex.getMessage());
-        }
-    }
-
-    public List<Nave> listarNavesConZonas() throws SQLException {
-        List<Nave> naves = new ArrayList<>();
-        String sql = """
-                SELECT
-                    n.id AS n_id,
-                    z.id AS z_id,
-                    z.tipo AS z_tipo
-                FROM nave n
-                LEFT JOIN zona z ON z.id_nave = n.id
-                ORDER BY n.id, z.id
-                """;
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            try (ResultSet rs = stmt.executeQuery()) {
-                Nave currentNave = null;
-                while (rs.next()) {
-                    int naveId = rs.getInt("n_id");
-                    if (currentNave == null || currentNave.getId() != naveId) {
-                        currentNave = new Nave();
-                        currentNave.setId(naveId);
-                        naves.add(currentNave);
-                    }
-
-                    int zonaId = rs.getInt("z_id");
-                    if (!rs.wasNull()) {
-                        Zona zona = new Zona();
-                        zona.setId(zonaId);
-                        zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo").toUpperCase()));
-                        zona.setNave(currentNave);
-                        currentNave.agregarZona(zona);
-                    }
-                }
-                return naves;
-            } catch (SQLException ex) {
-                throw new SQLException("Error al listar las naves con zonas: " + ex.getMessage());
-            }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al listar las naves con zonas: " + ex.getMessage());
         }
     }
 
@@ -438,44 +294,6 @@ public class ProductoUbicacionDAO {
         }
     }
 
-    public List<Zona> buscarZonas(Integer pageNumber, Integer pageSize) throws SQLException {
-        String sql = """
-                SELECT
-                    z.id as z_id,
-                    z.tipo as z_tipo_zona,
-                    n.id as n_id
-                FROM zona z
-                INNER JOIN nave n ON z.id_nave = n.id
-                ORDER BY z.id
-                LIMIT ? OFFSET ?
-                """;
-
-        List<Zona> zonas = new ArrayList<>();
-        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
-                stmt.setInt(1, pageSize);
-                stmt.setInt(2, (pageNumber - 1) * pageSize);
-               try (ResultSet rs = stmt.executeQuery()) {
-                   while (rs.next()) {
-                       Zona zona = new Zona();
-                       zona.setId(rs.getInt("z_id"));
-                       zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo_zona").toUpperCase()));
-
-                       Nave nave = new Nave();
-                       nave.setId(rs.getInt("n_id"));
-                       zona.setNave(nave);
-                       nave.agregarZona(zona);
-
-                       zonas.add(zona);
-                   }
-                   return zonas;
-               } catch (SQLException ex) {
-                   throw new SQLException("Error al obtener las zonas: " + ex.getMessage());
-               }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al obtener las zonas: " + ex.getMessage());
-        }
-    }
-
     // Operaciones Ubicacion.
     public Ubicacion insertarUbicacion(Ubicacion ubicacion) throws SQLException{
         String sql = """
@@ -509,119 +327,37 @@ public class ProductoUbicacionDAO {
         }
     }
 
-    public Ubicacion buscarUbicacionPorId(int id) throws SQLException {
-        String sql = """
-            SELECT 
-                u.id AS u_id,
-                u.nro_estanteria AS u_nro_estanteria,
-                u.nro_nivel AS u_nro_nivel,
-                u.capacidad_usada AS u_capacidad_usada,
-                z.id AS z_id,
-                z.tipo AS z_tipo,
-                n.id AS n_id
-            FROM ubicacion u
-            INNER JOIN zona z ON u.id_zona = z.id
-            INNER JOIN nave n ON z.id_nave = n.id
-            WHERE u.id = ?""";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Ubicacion ubicacion = Mapper.mapRowToUbicacion(rs);
-                    return ubicacion;
-                } else {
-                    throw new SQLException("No se encontró la ubicación con ID: " + id);
-                }
-            } catch (SQLException ex) {
-                throw new SQLException("Error al obtener la ubicación: " + ex.getMessage());
-            }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al obtener la ubicación: " + ex.getMessage());
-        }
-    }
-
-    public List<Ubicacion> buscarUbicacionesPorZona(Integer zonaId) throws SQLException {
-        List<Ubicacion> ubicaciones = new ArrayList<>();
-        String sql = """
-            SELECT 
-                u.id AS u_id,
-                u.nro_estanteria AS u_nro_estanteria,
-                u.nro_nivel AS u_nro_nivel,
-                u.capacidad_usada AS u_capacidad_usada,
-                z.id AS z_id,
-                z.tipo AS z_tipo
-            FROM ubicacion u
-            INNER JOIN zona z ON u.id_zona = z.id
-            WHERE z.id = ?
-            ORDER BY u.id
-            """;
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, zonaId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Ubicacion ubicacion = new Ubicacion();
-                ubicacion.setId(rs.getInt("u_id"));
-                ubicacion.setNroEstanteria(rs.getInt("u_nro_estanteria"));
-                ubicacion.setNroNivel(rs.getInt("u_nro_nivel"));
-                ubicacion.setCapacidadUsada(rs.getDouble("u_capacidad_usada"));
-
-                Zona zona = new Zona();
-                zona.setId(rs.getInt("z_id"));
-                zona.setTipo(TipoZona.valueOf(rs.getString("z_tipo").toUpperCase()));
-                ubicacion.setZona(zona);
-
-                ubicaciones.add(ubicacion);
-            }
-            return ubicaciones;
-        } catch (SQLException ex) {
-            String error = "Error al listar las ubicaciones por zona: ";
-            System.out.println(error);
-            throw new SQLException(error + ex.getMessage());
-        }
-    }
-
     public List<Ubicacion> listarTodasUbicaciones() throws SQLException {
         List<Ubicacion> ubicaciones = new ArrayList<>();
-        String sql = """
-            
-                SELECT
-                    u.id AS u_id,
-                    u.nro_estanteria AS u_nro_estanteria,
-                    u.nro_nivel AS u_nro_nivel,
-                    u.capacidad_usada AS u_capacidad_usada,
-                    z.id AS z_id,
-                    z.tipo AS z_tipo,
-                    n.id AS n_id,
-                     pu.id AS pu_id,
-                     pu.stockProductoUbicacion AS pu_stockProductoUbicacion,
-                     p.id AS p_id,
-                     p.descripcion AS p_descripcion,
-                     p.cantidad_unidad AS p_cantidad_unidad,
-                     p.unidad_medida AS p_unidad_medida,
-                     p.stock AS p_stock,
-                     tp.id AS tp_id,
-                     tp.descripcion AS tp_descripcion
-                 FROM ubicacion u
-                 INNER JOIN zona z ON u.id_zona = z.id
-                 INNER JOIN nave n ON z.id_nave = n.id
-                 INNER JOIN producto_ubicacion pu ON pu.id_ubicacion = u.id
-                 INNER JOIN producto p ON pu.id_producto = p.id
-                 INNER JOIN tipo_producto tp ON p.id_tipo_producto = tp.id
-            """;
+        String sql = ProductoUbicacionQueries.listarUbicaciones;
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                Ubicacion ubicacion = Mapper.mapRowToUbicacionCompleto(rs);
-
+                Ubicacion ubicacion = Mapper.mapRowToUbicacion(rs);
                 ubicaciones.add(ubicacion);
             }
         } catch (SQLException ex) {
             throw new SQLException("Error al listar las ubicaciones: " + ex.getMessage());
         }
         return ubicaciones;
+    }
+
+    public List<ProductoUbicacion> listarProductosPorUbicacion(Integer ubicacionId) throws SQLException {
+        List<ProductoUbicacion> productos = new ArrayList<>();
+        String sql = ProductoUbicacionQueries.listarProductosPorUbicacion;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, ubicacionId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                ProductoUbicacion productoUbicacion = Mapper.mapRowToProductoUbicacionSinUbicacion(rs);
+                productos.add(productoUbicacion);
+            }
+
+            return productos;
+        } catch (SQLException ex) {
+            throw new SQLException("Error al listar los productos en la ubicacion: " + ex.getMessage());
+        }
     }
 
     public List<Ubicacion> listarUbicacionesPorProducto(Integer productoId) throws SQLException {
@@ -770,7 +506,6 @@ public class ProductoUbicacionDAO {
             throw new SQLException("Error al actualizar el producto en la ubicación: " + ex.getMessage());
         }
     }
-
 
     // Operaciones de inicializacion.
     private void crearTablaTipoProducto() throws SQLException {

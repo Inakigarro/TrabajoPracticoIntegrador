@@ -7,7 +7,6 @@ import IG.application.interfaces.IServicioUbicaciones;
 import IG.config.ConexionBD;
 import IG.domain.Clases.*;
 import IG.domain.DAO.ProductoUbicacionDAO;
-import IG.domain.Enums.TipoMovimiento;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -107,18 +106,6 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
         }
     }
 
-    public List<UbicacionDto> obtenerUbicacionesPorZonaId(Integer idZona) throws Exception {
-        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
-            ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
-            List<Ubicacion> ubicaciones = prodUbiDao.buscarUbicacionesPorZona(idZona);
-            return ubicaciones.stream().map(UbicacionDto::map).toList();
-        } catch (SQLException exception) {
-            String error = "Error al obtener las ubicaciones: " + exception.getMessage();
-            System.out.println(error);
-            throw new Exception(error, exception);
-        }
-    }
-
     public List<UbicacionDto> listarUbicaciones() {
         try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO dao = new ProductoUbicacionDAO(conn);
@@ -141,6 +128,13 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
         try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
             List<Ubicacion> ubicaciones = prodUbiDao.listarTodasUbicaciones();
+            ubicaciones.forEach(u -> {
+                try {
+                    u.addRangeProductos(prodUbiDao.listarProductosPorUbicacion(u.getId()));
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             return ubicaciones.stream().map(UbicacionDto::map).toList();
         } catch (SQLException exception) {
             String error = "Error al obtener las ubicaciones: " + exception.getMessage();
