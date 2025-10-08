@@ -66,6 +66,9 @@ public class EnProcesoEstado implements EstadoOrdenMovimiento {
                                 if (prodUbi != null && prodUbi.getStock() >= cantidad) {
                                     prodUbi.setStock(prodUbi.getStock() - cantidad);
                                     ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() - cantidad);
+                                    producto.setStock(producto.getStock() - cantidad);
+                                    servicioProducto.actualizarProducto(producto);
+                                    servicioUbicaciones.actualizarUbicacion(ubicacion);
                                     servicioUbicaciones.actualizarProductoUbicacion(prodUbi);
                                 } else {
                                     throw new IllegalStateException("No hay suficiente stock del producto " + producto.getId() + " en la ubicación " + ubicacion.getId());
