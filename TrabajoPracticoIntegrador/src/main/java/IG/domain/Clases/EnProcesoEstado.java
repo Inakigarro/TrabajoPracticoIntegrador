@@ -1,6 +1,5 @@
 package IG.domain.Clases;
 
-import IG.application.Dtos.Ubicacion.UbicacionDto;
 import IG.application.ServicioProductosDao;
 import IG.application.ServicioUbicaciones;
 import IG.application.interfaces.IServicioProductos;
@@ -80,31 +79,39 @@ public class EnProcesoEstado implements EstadoOrdenMovimiento {
                         break;
                     }
                     case INTERNO: {
-                        if (detalle.esSalida() && cantidad > 0 && cantidad <= capacidadDisponible) {
-                            if (ubicacion.tieneProducto(producto)) {
-                                ProductoUbicacion prodUbi = ubicacion.getProductoUbicacionPorProductoId(producto.getId());
-
-                                if (prodUbi != null && prodUbi.getStock() >= cantidad) {
+                        // Si es movimiento interno, no se modifica el stock del producto.
+                        // Solo la capacidad usada de la ubicacion y el stock en ProductoUbicacion si aplica.
+                        if (detalle.esSalida()) {
+                            if (cantidad > 0 && ubicacion.tieneCapacidadDisponible(cantidad)) {
+                                ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() - cantidad);
+                                var prodUbi = ubicacion.getProductoUbicacionPorProductoId(producto.getId());
+                                if (prodUbi != null) {
                                     prodUbi.setStock(prodUbi.getStock() - cantidad);
-                                    ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() - cantidad);
+                                    servicioUbicaciones.actualizarProductoUbicacion(prodUbi);
+                                }
+                                servicioUbicaciones.actualizarUbicacion(ubicacion);
+                            } else {
+                                throw new IllegalStateException("No hay suficiente capacidad en la ubicación " + ubicacion.getId());
+                            }
+                        } else {
+                            if (cantidad > 0 && ubicacion.tieneStockDisponible(producto.getId(), cantidad)) {
+                                ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() + cantidad);
+                                var prodUbi = ubicacion.getProductoUbicacionPorProductoId(producto.getId());
+                                if (prodUbi != null) {
+                                    prodUbi.setStock(prodUbi.getStock() + cantidad);
                                     servicioUbicaciones.actualizarProductoUbicacion(prodUbi);
                                 } else {
-                                    throw new IllegalStateException("No hay suficiente stock del producto " + producto.getId() + " en la ubicación " + ubicacion.getId());
+                                    prodUbi = new ProductoUbicacion(producto, ubicacion, cantidad);
+                                    ubicacion.addProducto(prodUbi);
+                                    servicioUbicaciones.insertarProductoUbicacion(prodUbi);
                                 }
+                                servicioUbicaciones.actualizarUbicacion(ubicacion);
                             } else {
-                                throw new IllegalStateException("El producto " + producto.getId() + " no existe en la ubicación " + ubicacion.getId());
+                                throw new IllegalStateException("No hay suficiente stock del producto " + producto.getId() + " en la ubicación " + ubicacion.getId());
                             }
-                        } else if (!detalle.esSalida() && cantidad <= capacidadDisponible) {
-                            ProductoUbicacion prodUbi = new ProductoUbicacion(producto, ubicacion, cantidad);
-                            ubicacion.addProducto(prodUbi);
-                            ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() + cantidad);
-                            servicioUbicaciones.insertarProductoUbicacion(prodUbi);
-                        } else {
-                            logger.warning("El detalle de la orden interna es inválido. Se omite este detalle.");
                         }
                         break;
-                        }
-
+                    }
                 }
             } catch (Exception e) {
                 throw new IllegalStateException("Error al obtener la ubicación: " + e.getMessage());

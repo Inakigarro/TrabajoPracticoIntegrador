@@ -31,9 +31,11 @@ public class OrdenMovimientoDetalleView extends JFrame {
     private JLabel lblEstado;
     private JLabel lblCmbProducto;
     private JLabel lblCmbUbicacion;
+    private JLabel lblCmbUbicacionDestino;
     private JTable tablaDetalles;
     private JComboBox<ProductoDto> cmbProducto;
     private JComboBox<UbicacionDto> cmbUbicacion;
+    private JComboBox<UbicacionDto> cmbUbicacionDestino;
     private JTextField txtCantidad;
     private JCheckBox chkSalida;
     private JButton btnAgregarDetalle;
@@ -66,44 +68,83 @@ public class OrdenMovimientoDetalleView extends JFrame {
         panelInfo.add(lblFecha);
         panelInfo.add(new JLabel("Estado:"));
         panelInfo.add(lblEstado);
+        panelInfo.setBorder(BorderFactory.createTitledBorder("Información de la Orden"));
         add(panelInfo, BorderLayout.NORTH);
 
-        // Panel para agregar detalle
-        cmbProducto = new JComboBox<>();
+        // Inicialización de componentes antes de agregarlos al panel
         lblCmbProducto = new JLabel("Producto:");
+        cmbProducto = new JComboBox<>();
+        lblCmbUbicacion = new JLabel("Ubicación:");
         cmbUbicacion = new JComboBox<>();
-        lblCmbUbicacion = new JLabel("Ubicacion:");
+        lblCmbUbicacionDestino = new JLabel("Ubicación Destino:");
+        cmbUbicacionDestino = new JComboBox<>();
         txtCantidad = new JTextField(6);
         chkSalida = new JCheckBox("Salida", true);
         btnAgregarDetalle = new JButton("Agregar Detalle");
+        btnAgregarDetalle.addActionListener((a) -> agregarDetalle());
         btnGuardar = new JButton("Guardar");
-        JPanel panelAgregar = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
-        panelAgregar.add(lblCmbProducto);
-        panelAgregar.add(cmbProducto);
-        panelAgregar.add(lblCmbUbicacion);
-        panelAgregar.add(cmbUbicacion);
-        panelAgregar.add(new JLabel("Cantidad:"));
-        panelAgregar.add(txtCantidad);
-        panelAgregar.add(chkSalida);
-        panelAgregar.add(btnAgregarDetalle);
-        panelAgregar.add(btnGuardar);
-        btnAgregarDetalle.addActionListener(e -> agregarDetalle());
-        btnGuardar.addActionListener(e -> {
-            guardarDetalles();
-        });
-        // Ajustar tamaño máximo para que ocupe solo una fila
-        panelAgregar.setMaximumSize(new Dimension(Integer.MAX_VALUE, panelAgregar.getPreferredSize().height));
-        cmbProducto.setMaximumSize(new Dimension(120, 25));
-        cmbUbicacion.setMaximumSize(new Dimension(120, 25));
-        txtCantidad.setMaximumSize(new Dimension(60, 25));
-        btnAgregarDetalle.setMaximumSize(new Dimension(140, 25));
-        chkSalida.setMaximumSize(new Dimension(80, 25));
-        // Panel intermedio con BoxLayout vertical
+        btnGuardar.addActionListener(a -> guardarDetalles());
+
+        // Panel superior con dos columnas y separador vertical
+        JPanel panelSuperior = new JPanel(new GridBagLayout());
+        panelSuperior.setBorder(BorderFactory.createTitledBorder("Agregar Detalle"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Columna 1: Ubicaciones
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panelSuperior.add(lblCmbUbicacion, gbc);
+        gbc.gridy++;
+        panelSuperior.add(cmbUbicacion, gbc);
+        gbc.gridy++;
+        panelSuperior.add(lblCmbUbicacionDestino, gbc);
+        gbc.gridy++;
+        panelSuperior.add(cmbUbicacionDestino, gbc);
+
+        // Separador vertical
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.gridheight = 7;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        JSeparator sepVertical = new JSeparator(SwingConstants.VERTICAL);
+        sepVertical.setPreferredSize(new Dimension(2, 120));
+        panelSuperior.add(sepVertical, gbc);
+        gbc.gridheight = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Columna 2: Producto y cantidad
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        panelSuperior.add(lblCmbProducto, gbc);
+        gbc.gridy++;
+        panelSuperior.add(cmbProducto, gbc);
+        gbc.gridy++;
+        panelSuperior.add(new JLabel("Cantidad:"), gbc);
+        gbc.gridy++;
+        panelSuperior.add(txtCantidad, gbc);
+        gbc.gridy++;
+        panelSuperior.add(chkSalida, gbc);
+        gbc.gridy++;
+        panelSuperior.add(btnAgregarDetalle, gbc);
+        gbc.gridy++;
+        panelSuperior.add(btnGuardar, gbc);
+
+        // Panel central con separador horizontal
         JPanel panelCentral = new JPanel();
         panelCentral.setLayout(new BoxLayout(panelCentral, BoxLayout.Y_AXIS));
-        panelCentral.add(panelAgregar);
+        panelCentral.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panelCentral.add(panelSuperior);
+        panelCentral.add(Box.createVerticalStrut(10));
+        JSeparator sepHorizontal = new JSeparator(SwingConstants.HORIZONTAL);
+        sepHorizontal.setMaximumSize(new Dimension(Integer.MAX_VALUE, 2));
+        panelCentral.add(sepHorizontal);
+        panelCentral.add(Box.createVerticalStrut(10));
         tablaDetalles = new JTable();
         JScrollPane scrollPane = new JScrollPane(tablaDetalles);
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Detalles de la Orden"));
         panelCentral.add(scrollPane);
         add(panelCentral, BorderLayout.CENTER);
     }
@@ -150,12 +191,26 @@ public class OrdenMovimientoDetalleView extends JFrame {
                 case INGRESO, EGRESO -> {
                     lblCmbUbicacion.setVisible(false);
                     cmbUbicacion.setVisible(false);
+                    lblCmbUbicacionDestino.setVisible(false);
+                    cmbUbicacionDestino.setVisible(false);
                 }
                 case INTERNO -> {
                     lblCmbUbicacion.setVisible(true);
                     cmbUbicacion.setVisible(true);
+                    lblCmbUbicacionDestino.setVisible(true);
+                    cmbUbicacionDestino.setVisible(true);
+                    // Poblar ubicaciones destino
+                    cmbUbicacionDestino.removeAllItems();
+                    var ubicaciones = servicioUbicaciones.listarUbicaciones();
+                    if (ubicaciones != null) {
+                        for (var u : ubicaciones) cmbUbicacionDestino.addItem(u);
+                    }
                 }
-                default -> cmbUbicacion.setVisible(true);
+                default -> {
+                    cmbUbicacion.setVisible(true);
+                    lblCmbUbicacionDestino.setVisible(false);
+                    cmbUbicacionDestino.setVisible(false);
+                }
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al cargar productos/ubicaciones: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -262,7 +317,7 @@ public class OrdenMovimientoDetalleView extends JFrame {
                     // Mientras haya cantidad por sacar y haya ubicaciones con el producto
                     for (var ubicacion : ubicacionesConProducto) {
                         if (cantidadPeso <= 0) break;
-                        // Cualculo la cantidad de producto en esa ubicacion.
+                        // Cualico la cantidad de producto en esa ubicacion.
                         double cantidadEnUbicacion = ubicacion.productos.get(producto.id());
                         if (cantidadEnUbicacion <= 0) continue; // Si no hay cantidad, sigo con la siguiente
                         double cantidadASacar = Math.min(cantidadPeso, cantidadEnUbicacion);
@@ -286,31 +341,62 @@ public class OrdenMovimientoDetalleView extends JFrame {
                     return;
                 }
                 case INTERNO: {
-                    // Verifico que haya ubicacion seleccionada.
-                    UbicacionDto ubicacion = (UbicacionDto) cmbUbicacion.getSelectedItem();
-                    if (ubicacion == null) {
+                    // Busco la ubicacion origen
+                    var ubicacionOrigenSeleccionada = (UbicacionDto) cmbUbicacion.getSelectedItem();
+                    if (ubicacionOrigenSeleccionada == null) {
                         JOptionPane.showMessageDialog(this, "Debe seleccionar una ubicación de origen.", "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
-
-                    // Verifico que la ubicacion tenga el producto y la cantidad suficiente.
-                    double cantidadEnUbicacion = ubicacion.productos().get(producto.id());
-                    Boolean esSalida = chkSalida.isSelected();
-                    if (esSalida) {
-                        if (cantidadEnUbicacion < cantidad) {
-                            JOptionPane.showMessageDialog(this, "La ubicación seleccionada no tiene suficiente stock del producto.", "Error", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-                    } else {
-                        double espacioDisponible = UbicacionConstants.UBICACION_CAPACIDAD_MAX - ubicacion.capacidadUsada();
-                        if (espacioDisponible < cantidadPeso) {
-                            JOptionPane.showMessageDialog(this, "La ubicación seleccionada no tiene suficiente espacio para la cantidad del producto.", "Error", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
+                    var ubicacionOrigen = this.ubicaciones.stream()
+                            .filter(ub -> ub.id.equals(ubicacionOrigenSeleccionada.id()))
+                            .findFirst().orElse(null);
+                    if (ubicacionOrigen == null || !ubicacionOrigen.productos.containsKey(producto.id())) {
+                        JOptionPane.showMessageDialog(this, "La ubicación de origen no contiene el producto seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
 
-                    DetalleMovimientoDto detalleDto = new DetalleMovimientoDto(0, cantidad, producto, ubicacion, esSalida);
-                    detalles.add(detalleDto);
+                    // Busco la ubicacion destino
+                    var ubicacionDestinoSeleccionada = (UbicacionDto) cmbUbicacionDestino.getSelectedItem();
+                    if (ubicacionDestinoSeleccionada == null) {
+                        JOptionPane.showMessageDialog(this, "Debe seleccionar una ubicación de destino.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    var ubicacionDestino = this.ubicaciones.stream()
+                            .filter(ub -> ub.id.equals(ubicacionDestinoSeleccionada.id()))
+                            .findFirst().orElse(null);
+                    if (ubicacionDestino == null) {
+                        JOptionPane.showMessageDialog(this, "La ubicación de destino no es válida.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Verifico que la ubicacion origen tenga suficiente stock del producto.
+                    double cantidadEnOrigen = ubicacionOrigen.productos.get(producto.id());
+                    if (cantidadEnOrigen < cantidadPeso) {
+                        JOptionPane.showMessageDialog(this, "La ubicación de origen no tiene suficiente stock del producto seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Si la ubicacion origen y destino son iguales, no tiene sentido mover el producto.
+                    if (ubicacionOrigen.id.equals(ubicacionDestino.id)) {
+                        JOptionPane.showMessageDialog(this, "La ubicación de origen y destino no pueden ser las mismas.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Si la ubicacion destino tiene espacio disponible, genero el detalle de salida y el de ingreso.
+                    if (ubicacionDestino.tieneCapacidadDisponible(cantidadPeso)) {
+                        detalles.add(new DetalleMovimientoDto(0, cantidadPeso, producto, UbicacionDto.map(ubicacionOrigen), true));
+                        detalles.add(new DetalleMovimientoDto(0, cantidadPeso, producto, UbicacionDto.map(ubicacionDestino), false));
+                        // Actualizo las ubicaciones en caché.
+                        ubicacionOrigen.capacidadUsada -= cantidadPeso;
+                        ubicacionOrigen.productos.put(producto.id(), cantidadEnOrigen - cantidadPeso);
+
+                        ubicacionDestino.capacidadUsada += cantidadPeso;
+                        ubicacionOrigen.productos.put(producto.id(), cantidadEnOrigen + cantidadPeso);
+                        cargarTablaDetalles();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "La ubicación de destino no tiene suficiente capacidad para la cantidad especificada.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                 }
             }
         } catch (Exception e) {

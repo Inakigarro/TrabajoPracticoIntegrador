@@ -1,5 +1,7 @@
 package IG.application.Dtos.Ubicacion;
 
+import IG.domain.Constants.UbicacionConstants;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,5 +34,9 @@ public class UbicacionCache {
         cache.productos = ubicacion.productos();
 
         return cache;
+    }
+
+    public Boolean tieneCapacidadDisponible(Double cantidad) {
+        return (capacidadUsada + cantidad) <= UbicacionConstants.UBICACION_CAPACIDAD_MAX;
     }
 }

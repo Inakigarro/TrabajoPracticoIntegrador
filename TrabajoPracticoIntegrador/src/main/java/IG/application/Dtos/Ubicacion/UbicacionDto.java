@@ -2,6 +2,7 @@ package IG.application.Dtos.Ubicacion;
 
 import IG.application.Dtos.ProductoUbicacionDto;
 import IG.domain.Clases.Ubicacion;
+import IG.domain.Constants.UbicacionConstants;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +46,12 @@ public record UbicacionDto(
         );
     }
 
+    public Boolean tieneCapacidadDisponible(Double cantidad) {
+        return (capacidadUsada + cantidad) <= UbicacionConstants.UBICACION_CAPACIDAD_MAX;
+    }
+    public Double obtenerCapacidadDisponible(){
+        return UbicacionConstants.UBICACION_CAPACIDAD_MAX - capacidadUsada;
+    }
     @Override
     public String toString() {
         return String.format("Estanteria: %d, Nivel: %d, Zona: %s", this.nroEstanteria, this.nroNivel, this.zona);
