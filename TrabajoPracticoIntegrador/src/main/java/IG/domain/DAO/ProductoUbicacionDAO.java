@@ -108,6 +108,29 @@ public class ProductoUbicacionDAO {
         }
     }
 
+    public void actualizarProducto(Producto producto) throws SQLException {
+        String sql = """
+                    UPDATE producto
+                    SET descripcion = ?, cantidad_unidad = ?, unidad_medida = ?, stock = ?, id_tipo_producto = ?
+                    WHERE id = ?
+                """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, producto.getDescripcion());
+            stmt.setDouble(2, producto.getCantidadUnidad());
+            stmt.setString(3, producto.getUnidadMedida().getDescripcion());
+            stmt.setDouble(4, producto.getStock());
+            stmt.setInt(5, producto.getTipoProducto().getId());
+            stmt.setInt(6, producto.getId());
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("No se pudo actualizar el producto, no se afectaron filas.");
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al actualizar el producto: " + ex.getMessage());
+        }
+    }
+
     public List<Producto> listarTodosProductos() throws SQLException {
         List<Producto> productos = new ArrayList<>();
         String sql = ProductoUbicacionQueries.listarProductos;
@@ -287,6 +310,28 @@ public class ProductoUbicacionDAO {
         }
     }
 
+    public void actualizarUbicacion(Ubicacion ubicacion) throws SQLException {
+        String sql = """
+                    UPDATE ubicacion
+                    SET nro_estanteria = ?, nro_nivel = ?, capacidad_usada = ?, id_zona = ?
+                    WHERE id = ?
+                """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, ubicacion.getNroEstanteria());
+            stmt.setInt(2, ubicacion.getNroNivel());
+            stmt.setDouble(3, ubicacion.getCapacidadUsada());
+            stmt.setInt(4, ubicacion.getZona().getId());
+            stmt.setInt(5, ubicacion.getId());
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("No se pudo actualizar la ubicación, no se afectaron filas.");
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al actualizar la ubicación: " + ex.getMessage());
+        }
+    }
+
     public List<Ubicacion> listarTodasUbicaciones() throws SQLException {
         List<Ubicacion> ubicaciones = new ArrayList<>();
         String sql = ProductoUbicacionQueries.listarUbicaciones;
@@ -338,70 +383,30 @@ public class ProductoUbicacionDAO {
         }
     }
 
-    public void insertarProductoEnUbicacion(Producto producto, Ubicacion ubicacion, double cantidad, boolean esSalida) throws SQLException {
+    public void insertarProductoEnUbicacion(ProductoUbicacion productoUbicacion) throws SQLException {
         try {
-            connection.setAutoCommit(false);
-            String sql = "";
-            // Si es salida, se asume que existe el producto en la ubicacion y se resta el stock de esa ubicacion.
-            if (esSalida) {
-                sql = """
-                        UPDATE producto_ubicacion
-                        SET stockProductoUbicacion = stockProductoUbicacion - ?
-                        WHERE id_producto = ? AND id_ubicacion = ?
-                        """;
+            String sql = "INSERT INTO producto_ubicacion (id_producto, id_ubicacion, stockProductoUbicacion) VALUES (?, ?, ?)";
+            try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                stmt.setInt(1, productoUbicacion.getProducto().getId());
+                stmt.setInt(2, productoUbicacion.getUbicacion().getId());
+                stmt.setDouble(3, productoUbicacion.getStockProductoUbicacion());
 
-                try(PreparedStatement stmt = connection.prepareStatement(sql)) {
-                    stmt.setDouble(1, cantidad);
-                    stmt.setInt(2, producto.getId());
-                    stmt.setInt(3, ubicacion.getId());
-                    int affectedRows = stmt.executeUpdate();
-                    if (affectedRows == 0) {
-                        throw new SQLException("No se pudo actualizar el stock del producto en la ubicación, no se afectaron filas.");
+                int affectedRows = stmt.executeUpdate();
+                if (affectedRows == 0) {
+                    throw new SQLException("No se pudo insertar el producto en la ubicación, no se afectaron filas.");
+                }
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        productoUbicacion.setId(generatedKeys.getInt(1));
+                    } else {
+                        throw new SQLException("No se pudo insertar el producto en la ubicación, no se obtuvo el ID.");
                     }
                 } catch (SQLException ex) {
-                    throw new SQLException("Error al actualizar el stock del producto en la ubicación: " + ex.getMessage());
+                    throw new SQLException("Error al obtener el ID generado para el producto en la ubicación: " + ex.getMessage());
                 }
-            } else {
-                // Si no, se inserta una nueva fila o se actualiza el stock en una ubicacion que ya tenga el producto.
-                sql = """
-                """;
             }
-
-            String sqlPU = "INSERT INTO producto_ubicacion (id_producto, id_ubicacion, stockProductoUbicacion) VALUES (?, ?, ?) ";
-
-            if (esSalida){
-                sqlPU += "ON DUPLICATE KEY UPDATE stockProductoUbicacion =stockProductoUbicacion - ?";
-            } else {
-                sqlPU += "ON DUPLICATE KEY UPDATE stockProductoUbicacion =stockProductoUbicacion + ?";
-            }
-            try (PreparedStatement ps = connection.prepareStatement(sqlPU)) {
-                ps.setInt(1, producto.getId());
-                ps.setInt(2, ubicacion.getId());
-                ps.setDouble(3, cantidad);
-                ps.setDouble(4, cantidad);
-                ps.executeUpdate();
-            }
-
-            String sqlProducto = "UPDATE producto SET stock = stock + ? WHERE id = ?";
-            try (PreparedStatement ps = connection.prepareStatement(sqlProducto)) {
-                ps.setDouble(1, cantidad);
-                ps.setInt(2, producto.getId());
-                ps.executeUpdate();
-            }
-
-            String sqlUbicacion = "UPDATE ubicacion SET capacidad_usada = capacidad_usada + ? WHERE id = ?";
-            try (PreparedStatement ps = connection.prepareStatement(sqlUbicacion)) {
-                ps.setDouble(1, cantidad);
-                ps.setInt(2, ubicacion.getId());
-                ps.executeUpdate();
-            }
-
-            connection.commit();
         } catch (SQLException ex) {
-            connection.rollback();
             throw ex;
-        } finally {
-            connection.setAutoCommit(true);
         }
     }
 

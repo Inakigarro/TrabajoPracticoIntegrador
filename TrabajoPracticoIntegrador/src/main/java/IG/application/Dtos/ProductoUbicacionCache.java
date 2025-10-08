@@ -19,8 +19,8 @@ public class ProductoUbicacionCache {
     public static ProductoUbicacionCache map(ProductoUbicacionDto prodUbi) {
         return new ProductoUbicacionCache(
                 prodUbi.id(),
-                ProductoCache.map(prodUbi.producto()),
-                UbicacionCache.map(prodUbi.ubicacion()),
+                prodUbi.producto() != null ?  ProductoCache.map(prodUbi.producto()) : null,
+                prodUbi.ubicacion() != null ? UbicacionCache.map(prodUbi.ubicacion()) : null,
                 prodUbi.stockProductoUbicacion()
         );
     }

@@ -13,8 +13,8 @@ public record ProductoUbicacionDto(
     public static ProductoUbicacionDto map(ProductoUbicacion prodUbi) {
         return new ProductoUbicacionDto(
                 prodUbi.getId(),
-                ProductoDto.map(prodUbi.getProducto()),
-                UbicacionDto.map(prodUbi.getUbicacion()),
+                prodUbi.getProducto() != null ? ProductoDto.map(prodUbi.getProducto()) : null,
+                prodUbi.getUbicacion() != null ? UbicacionDto.map(prodUbi.getUbicacion()) : null,
                 prodUbi.getStockProductoUbicacion()
         );
     }
@@ -22,8 +22,8 @@ public record ProductoUbicacionDto(
     public static ProductoUbicacionDto map(ProductoUbicacionCache prodUbi) {
         return new ProductoUbicacionDto(
                 prodUbi.id,
-                ProductoDto.map(prodUbi.producto),
-                UbicacionDto.map(prodUbi.ubicacion),
+                prodUbi.producto != null ? ProductoDto.map(prodUbi.producto) : null,
+                prodUbi.ubicacion != null ?  UbicacionDto.map(prodUbi.ubicacion) : null,
                 prodUbi.stockProductoUbicacion
         );
     }

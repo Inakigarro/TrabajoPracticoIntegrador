@@ -69,4 +69,16 @@ public class ServicioProductosDao implements IServicioProductos {
             throw new SQLException(error, exception);
         }
     }
+
+    @Override
+    public void actualizarProducto(Producto producto) throws SQLException {
+        try(Connection conn = ConexionBD.obtenerConexionBaseDatos()) {
+            ProductoUbicacionDAO productoUbicacionDAO = new ProductoUbicacionDAO(conn);
+            productoUbicacionDAO.actualizarProducto(producto);
+        } catch (SQLException exception) {
+            String error = "Error al actualizar el producto: " + exception.getMessage();
+            System.out.println(error);
+            throw new SQLException(error, exception);
+        }
+    }
 }

@@ -29,11 +29,7 @@ public class UbicacionCache {
             ubicacion.zona()
         );
 
-        if (ubicacion.productos() != null && !ubicacion.productos().isEmpty()) {
-            for (var producto : ubicacion.productos()) {
-                cache.productos.put(producto.producto().id(), producto.stockProductoUbicacion());
-            }
-        }
+        cache.productos = ubicacion.productos();
 
         return cache;
     }

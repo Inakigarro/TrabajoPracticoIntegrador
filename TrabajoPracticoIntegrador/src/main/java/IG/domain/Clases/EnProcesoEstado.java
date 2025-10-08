@@ -1,7 +1,9 @@
 package IG.domain.Clases;
 
 import IG.application.Dtos.Ubicacion.UbicacionDto;
+import IG.application.ServicioProductosDao;
 import IG.application.ServicioUbicaciones;
+import IG.application.interfaces.IServicioProductos;
 import IG.application.interfaces.IServicioUbicaciones;
 import IG.domain.Constants.UbicacionConstants;
 import IG.domain.Enums.EstadosOrdenes;
@@ -25,6 +27,7 @@ public class EnProcesoEstado implements EstadoOrdenMovimiento {
     @Override
     public void ejecutar(OrdenMovimiento orden) {
         IServicioUbicaciones servicioUbicaciones = new ServicioUbicaciones();
+        IServicioProductos servicioProducto = new ServicioProductosDao();
         for (DetalleMovimiento detalle : orden.getDetalleMovimientoList()) {
             Ubicacion ubicacion = detalle.getUbicacion();
             double cantidad = detalle.getCantidad();
@@ -35,15 +38,22 @@ public class EnProcesoEstado implements EstadoOrdenMovimiento {
                     case INGRESO: {
                         if (!detalle.esSalida() && cantidad <= capacidadDisponible) {
                             ProductoUbicacion prodUbi = ubicacion.getProductoUbicacionPorProductoId(producto.getId());
-                            if (prodUbi != null) {
+                            if (prodUbi != null && prodUbi.getId() != 0) {
                                 prodUbi.setStock(prodUbi.getStock() + cantidad);
+                                producto.setStock(producto.getStock() + cantidad);
                                 ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() + cantidad);
+                                servicioProducto.actualizarProducto(producto);
+                                servicioUbicaciones.actualizarUbicacion(ubicacion);
                                 servicioUbicaciones.actualizarProductoUbicacion(prodUbi);
+                            } else {
+                                prodUbi = new ProductoUbicacion(producto, ubicacion, cantidad);
+                                ubicacion.addProducto(prodUbi);
+                                producto.setStock(producto.getStock() + cantidad);
+                                ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() + cantidad);
+                                servicioUbicaciones.actualizarUbicacion(ubicacion);
+                                servicioProducto.actualizarProducto(producto);
+                                servicioUbicaciones.insertarProductoUbicacion(prodUbi);
                             }
-                            prodUbi = new ProductoUbicacion(producto, ubicacion, cantidad);
-                            ubicacion.addProducto(prodUbi);
-                            ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() + cantidad);
-                            servicioUbicaciones.insertarProductoUbicacion(producto, ubicacion, cantidad, detalle.esSalida());
                         } else {
                             logger.warning("El detalle indica una salida en una orden de ingreso. Se omite este detalle.");
                         }
@@ -85,7 +95,7 @@ public class EnProcesoEstado implements EstadoOrdenMovimiento {
                             ProductoUbicacion prodUbi = new ProductoUbicacion(producto, ubicacion, cantidad);
                             ubicacion.addProducto(prodUbi);
                             ubicacion.setCapacidadUsada(ubicacion.getCapacidadUsada() + cantidad);
-                            servicioUbicaciones.insertarProductoUbicacion(producto, ubicacion, cantidad, detalle.esSalida());
+                            servicioUbicaciones.insertarProductoUbicacion(prodUbi);
                         } else {
                             logger.warning("El detalle de la orden interna es inválido. Se omite este detalle.");
                         }

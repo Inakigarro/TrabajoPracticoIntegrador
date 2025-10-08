@@ -10,7 +10,9 @@ import IG.domain.DAO.ProductoUbicacionDAO;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ServicioUbicaciones implements IServicioUbicaciones {
     public ServicioUbicaciones() {}
@@ -97,7 +99,7 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
                     nuevaUbi.getNroNivel(),
                     nuevaUbi.getCapacidadUsada(),
                     ZonaDto.map(nuevaUbi.getZona()),
-                    List.of()
+                    new HashMap<>()
             );
         } catch (SQLException ex) {
             String error = "Error al intentar establecer conexion con la base de datos: ";
@@ -143,10 +145,21 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
         }
     }
 
-    public void insertarProductoUbicacion(Producto producto, Ubicacion ubicacion, Double cantidad, Boolean esSalida) throws Exception {
+    public void actualizarUbicacion(Ubicacion ubicacion) throws Exception {
         try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
             ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
-            prodUbiDao.insertarProductoEnUbicacion(producto, ubicacion, cantidad, esSalida);
+            prodUbiDao.actualizarUbicacion(ubicacion);
+        } catch (SQLException ex) {
+            String error = "Error al intentar establecer conexion con la base de datos: ";
+            System.out.println(error);
+            throw new SQLException(error + ex.getMessage());
+        }
+    }
+
+    public void insertarProductoUbicacion(ProductoUbicacion productoUbicacion) throws Exception {
+        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
+            ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
+            prodUbiDao.insertarProductoEnUbicacion(productoUbicacion);
         } catch (SQLException ex) {
             String error = "Error al intentar establecer conexion con la base de datos: ";
             System.out.println(error);

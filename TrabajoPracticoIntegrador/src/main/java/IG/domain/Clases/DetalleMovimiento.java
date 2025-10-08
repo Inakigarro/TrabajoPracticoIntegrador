@@ -20,27 +20,6 @@ public class DetalleMovimiento {
         this.ordenMovimiento = null;
     }
 
-    public DetalleMovimiento(Integer id, Producto producto, Ubicacion ubicacion, OrdenMovimiento ordenMovimiento, double cantidad, boolean esSalida) {
-        this();
-        this.setCantidad(cantidad);
-        this.setEsSalida(esSalida);
-        this.setProducto(producto);
-        this.setUbicacion(ubicacion);
-        this.setOrdenMovimiento(ordenMovimiento);
-    }
-
-    public DetalleMovimiento(Integer id, Double cantidad, Integer productoId, Integer ordenMovimientoId, Integer ubicacionId, Boolean esSalida) {
-        this.id = id;
-        this.cantidad = cantidad;
-        this.producto = new Producto();
-        this.producto.setId(productoId);
-        this.ordenMovimiento = new OrdenMovimiento();
-        this.ordenMovimiento.setId(ordenMovimientoId);
-        this.ubicacion = new Ubicacion();
-        this.ubicacion.setId(ubicacionId);
-        this.esSalida = esSalida;
-    }
-
     public void setId(Integer id) {
         if (id != null && id < 0) throw new IllegalArgumentException("El id no puede ser negativo");
         this.id = id;
@@ -90,10 +69,6 @@ public class DetalleMovimiento {
         this.cantidad = cantidad;
     }
 
-    /**
-     * Busca la relación ProductoUbicacion correspondiente a este detalle.
-     * Si no existe, la crea y la agrega a las listas de Producto y Ubicacion.
-     */
     public ProductoUbicacion getProductoUbicacion() {
         if (producto == null || ubicacion == null) return null;
         ProductoUbicacion pu = producto.getProductoUbicacionPorUbicacionId(ubicacion.getId());
@@ -103,20 +78,6 @@ public class DetalleMovimiento {
             ubicacion.getProductos().add(pu);
         }
         return pu;
-    }
-
-    /**
-     * Aplica el movimiento sobre el stock de ProductoUbicacion.
-     * Si es salida, descuenta; si es entrada, suma.
-     */
-    public void aplicarMovimiento() {
-        ProductoUbicacion pu = getProductoUbicacion();
-        if (pu == null) throw new IllegalStateException("No se pudo encontrar o crear la relación ProductoUbicacion");
-        if (esSalida) {
-            pu.restarStock(cantidad);
-        } else {
-            pu.sumarStock(cantidad);
-        }
     }
 
     public static DetalleMovimiento map(DetalleMovimientoDto dto) {

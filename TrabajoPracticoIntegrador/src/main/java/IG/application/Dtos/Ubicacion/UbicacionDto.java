@@ -3,8 +3,8 @@ package IG.application.Dtos.Ubicacion;
 import IG.application.Dtos.ProductoUbicacionDto;
 import IG.domain.Clases.Ubicacion;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public record UbicacionDto(
         Integer id,
@@ -12,9 +12,9 @@ public record UbicacionDto(
         Integer nroNivel,
         Double capacidadUsada,
         ZonaDto zona,
-        List<ProductoUbicacionDto> productos) {
+        Map<Integer, Double> productos) {
     public static UbicacionDto map(Ubicacion ubicacion) {
-        List<ProductoUbicacionDto> productos = new ArrayList<>();
+        Map<Integer, Double> productos = new HashMap<>();
         var dto = new UbicacionDto(
                 ubicacion.getId(),
                 ubicacion.getNroEstanteria(),
@@ -25,8 +25,9 @@ public record UbicacionDto(
         );
 
         if (ubicacion.getProductos() != null && !ubicacion.getProductos().isEmpty()) {
-            productos.addAll(ubicacion.getProductos()
-                    .stream().map(ProductoUbicacionDto::map).toList());
+            ubicacion.getProductos().forEach(producto -> {
+                productos.put(producto.getProducto().getId(), producto.getStockProductoUbicacion());
+            });
         }
 
         return dto;
@@ -40,7 +41,7 @@ public record UbicacionDto(
             ubicacion.nroNivel,
             ubicacion.capacidadUsada,
             ubicacion.zona,
-            List.of() // Lista vacía para evitar recursividad
+            ubicacion.productos
         );
     }
 

@@ -91,29 +91,23 @@ public class Ubicacion {
     public void addProducto(ProductoUbicacion productoUbicacion) {
         if (productoUbicacion == null)
             throw new IllegalArgumentException("El producto no puede ser nulo.");
+        productoUbicacion.setUbicacion(this);
         this.productos.add(productoUbicacion);
-
-        Producto producto = productoUbicacion.getProducto();
-        if (producto != null) {
-            double nuevoStock = producto.getStock() + productoUbicacion.getStockProductoUbicacion();
-            producto.setStock(nuevoStock);
-            producto.getUbicaciones().add(productoUbicacion);
-        }
     }
 
     public void addRangeProductos(List<ProductoUbicacion> productos) {
         if (productos == null) {
             throw new IllegalArgumentException("La lista de productos no puede ser nula.");
         }
-        this.productos.addAll(productos);
+        productos.forEach(this::addProducto);
     }
 
     public boolean estaDisponible() {
-        return 1250d - capacidadUsada > 0;
+        return UbicacionConstants.UBICACION_CAPACIDAD_MAX - capacidadUsada > 0;
     }
 
     public ProductoUbicacion getProductoUbicacionPorProductoId(int productoId) {
-        for (ProductoUbicacion pu : productos) {
+        for (ProductoUbicacion pu : productos) {;
             if (pu.getProducto() != null && pu.getProducto().getId() == productoId) {
                 return pu;
             }

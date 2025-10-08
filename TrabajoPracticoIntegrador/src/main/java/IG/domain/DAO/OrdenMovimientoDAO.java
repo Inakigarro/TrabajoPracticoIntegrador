@@ -2,6 +2,7 @@ package IG.domain.DAO;
 
 import IG.domain.Clases.*;
 import IG.domain.Enums.TipoMovimiento;
+import IG.persistence.OrdenMovimientoQueries;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -170,44 +171,7 @@ public class OrdenMovimientoDAO {
     }
 
     public List<DetalleMovimiento> buscarDetallesPorOrdenId(Integer ordenId) throws SQLException {
-        String sql = """
-                SELECT
-                	dm.id AS dm_id,
-                	dm.cantidad AS dm_cantidad,
-                	dm.id_producto AS dm_id_producto,
-                	dm.id_orden_movimiento AS dm_id_orden_movimiento,
-                	dm.id_ubicacion AS dm_id_ubicacion,
-                	dm.es_salida AS dm_es_salida,
-                	om.id AS om_id,
-                	om.tipo AS om_tipo,
-                	om.fecha AS om_fecha,
-                	om.estado AS om_estado,
-                	u.id AS u_id,
-                	u.nro_estanteria AS u_nro_estanteria,
-                	u.nro_nivel AS u_nro_nivel,
-                	u.capacidad_usada AS u_capacidad_usada,
-                	z.id AS z_id,
-                	z.tipo AS z_tipo,
-                	n.id AS n_id,
-                	 pu.id AS pu_id,
-                	 pu.stockProductoUbicacion AS pu_stockProductoUbicacion,
-                	 p.id AS p_id,
-                	 p.descripcion AS p_descripcion,
-                	 p.cantidad_unidad AS p_cantidad_unidad,
-                	 p.unidad_medida AS p_unidad_medida,
-                	 p.stock AS p_stock,
-                	 tp.id AS tp_id,
-                	 tp.descripcion AS tp_descripcion
-                FROM detalle_movimiento dm
-                INNER JOIN orden_movimiento om ON dm.id_orden_movimiento = om.id
-                INNER JOIN producto p ON dm.id_producto = p.id
-                INNER JOIN tipo_producto tp ON p.id_tipo_producto = tp.id
-                INNER JOIN ubicacion u ON dm.id_ubicacion = u.id
-                INNER JOIN zona z ON u.id_zona = z.id
-                INNER JOIN nave n ON z.id_nave = n.id
-                INNER JOIN producto_ubicacion pu ON pu.id_ubicacion = u.id
-                WHERE dm.id_orden_movimiento = ?
-                """;
+        String sql = OrdenMovimientoQueries.listarDestallesPorOrden;
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, ordenId);

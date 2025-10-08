@@ -91,6 +91,7 @@ public class Mapper {
         ProductoUbicacion pu = new ProductoUbicacion();
         pu.setProducto(p);
         pu.setUbicacion(u);
+        pu.setId(rs.getInt("pu_id"));
         pu.setStock(rs.getDouble("pu_stockProductoUbicacion"));
 
         return pu;
@@ -149,14 +150,12 @@ public class Mapper {
     public static DetalleMovimiento mapRowToDetalleMovimiento(ResultSet rs) throws SQLException {
         Producto p = mapRowToProducto(rs);
         Ubicacion u = mapRowToUbicacionCompleto(rs);
-        OrdenMovimiento om = mapRowToOrdenMovimiento(rs);
         DetalleMovimiento dm = new DetalleMovimiento();
         dm.setId(rs.getInt("dm_id"));
         dm.setCantidad(rs.getDouble("dm_cantidad"));
         dm.setEsSalida(rs.getBoolean("dm_es_salida"));
         dm.setProducto(p);
         dm.setUbicacion(u);
-        dm.setOrdenMovimiento(om);
         return dm;
     }
 }

@@ -1,5 +1,5 @@
 package IG.views;
-import IG.application.Dtos.ProductoUbicacionDto;
+
 import IG.application.Dtos.Ubicacion.UbicacionCache;
 import IG.application.ServicioProductosDao;
 import IG.application.interfaces.IServicioOrdenMovimiento;
@@ -294,9 +294,7 @@ public class OrdenMovimientoDetalleView extends JFrame {
                     }
 
                     // Verifico que la ubicacion tenga el producto y la cantidad suficiente.
-                    double cantidadEnUbicacion = ubicacion
-                            .productos().stream().filter(pu ->
-                                    pu.producto().id() == producto.id()).mapToDouble(ProductoUbicacionDto::stockProductoUbicacion).sum();
+                    double cantidadEnUbicacion = ubicacion.productos().get(producto.id());
                     Boolean esSalida = chkSalida.isSelected();
                     if (esSalida) {
                         if (cantidadEnUbicacion < cantidad) {
@@ -328,7 +326,6 @@ public class OrdenMovimientoDetalleView extends JFrame {
             }
             servicio.actualizarDetallesOrdenMovimiento(this.ordenId, this.detalles);
             JOptionPane.showMessageDialog(this, "Detalles guardados correctamente.");
-            cargarDatos();
             this.setVisible(false);
             this.dispose();
         } catch (Exception e) {
