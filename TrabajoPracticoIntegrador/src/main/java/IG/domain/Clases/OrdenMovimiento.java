@@ -44,7 +44,7 @@ import java.util.List;
     public void aprobar() {
         estadoOrden.aprobar(this);
     }
-    public void ejecutar() {
+    public void ejecutar() throws Exception{
         estadoOrden.ejecutar(this);
     }
     public void completar() {

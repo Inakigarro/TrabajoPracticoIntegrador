@@ -120,6 +120,10 @@ public class Ubicacion {
         return this.productos.stream().anyMatch(p -> p.getProducto().equals(producto));
     }
 
+    public Double getCapacidadDisponible() {
+        return UbicacionConstants.UBICACION_CAPACIDAD_MAX - capacidadUsada;
+    }
+
     public boolean tieneCapacidadDisponible(double cantidad) {
         return (capacidadUsada + cantidad) <= UbicacionConstants.UBICACION_CAPACIDAD_MAX;
     }

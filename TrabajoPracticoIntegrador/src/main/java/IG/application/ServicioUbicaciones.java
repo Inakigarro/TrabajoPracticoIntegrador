@@ -177,4 +177,34 @@ public class ServicioUbicaciones implements IServicioUbicaciones {
             throw new SQLException(error + ex.getMessage());
         }
     }
+
+    public void actualizarEnTransaccion(List<Ubicacion> ubicaciones, List<ProductoUbicacion> productoUbicacionesAModificar, List<ProductoUbicacion> productoUbicacionesACrear) throws Exception {
+        try(var conn = ConexionBD.obtenerConexionBaseDatos()) {
+            try {
+                conn.setAutoCommit(false);
+                ProductoUbicacionDAO prodUbiDao = new ProductoUbicacionDAO(conn);
+                for (Ubicacion u : ubicaciones) {
+                    prodUbiDao.actualizarUbicacion(u);
+                }
+                for (ProductoUbicacion pu : productoUbicacionesAModificar) {
+                    prodUbiDao.actualizarProductoUbicacion(pu);
+                }
+                for (ProductoUbicacion pu : productoUbicacionesACrear) {
+                    prodUbiDao.insertarProductoEnUbicacion(pu);
+                }
+                conn.commit();
+            } catch (SQLException ex) {
+                conn.rollback();
+                String error = "Error al intentar actualizar en transacción: ";
+                System.out.println(error);
+                throw new SQLException(error + ex.getMessage());
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException ex) {
+            String error = "Error al intentar establecer conexion con la base de datos: ";
+            System.out.println(error);
+            throw new SQLException(error + ex.getMessage());
+        }
+    }
 }

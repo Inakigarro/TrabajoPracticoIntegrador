@@ -106,6 +106,9 @@ public class ServicioOrdenMovimiento implements IServicioOrdenMovimiento {
         } catch (SQLException e) {
             logger.severe(String.format("Error al modificar Estado de orden: %d", id));
             throw new RuntimeException("Error al modificar el estado de la orden: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.severe(e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 

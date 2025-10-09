@@ -3,7 +3,6 @@ package IG.application.interfaces;
 import IG.application.Dtos.Ubicacion.NaveDto;
 import IG.application.Dtos.Ubicacion.UbicacionDto;
 import IG.application.Dtos.Ubicacion.ZonaDto;
-import IG.domain.Clases.Producto;
 import IG.domain.Clases.ProductoUbicacion;
 import IG.domain.Clases.Ubicacion;
 import IG.domain.Clases.Zona;
@@ -25,4 +24,6 @@ public interface IServicioUbicaciones {
     public void actualizarUbicacion(Ubicacion ubicacion) throws Exception;
     public void insertarProductoUbicacion(ProductoUbicacion productoUbicacion) throws Exception;
     public void actualizarProductoUbicacion(ProductoUbicacion productoUbicacion) throws Exception;
+
+    public void actualizarEnTransaccion(List<Ubicacion> ubicaciones, List<ProductoUbicacion> productoUbicacionesAModificar, List<ProductoUbicacion> productoUbicacionesACrear) throws Exception;
 }
