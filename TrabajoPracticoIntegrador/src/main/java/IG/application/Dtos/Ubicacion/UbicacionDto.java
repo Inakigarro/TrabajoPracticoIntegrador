@@ -33,14 +33,13 @@ public record UbicacionDto(
     }
 
     public static UbicacionDto map(UbicacionCache ubicacion) {
-        // Para evitar bucle infinito, no mapeamos la lista de productos aquí
         return new UbicacionDto(
             ubicacion.id,
             ubicacion.nroEstanteria,
             ubicacion.nroNivel,
             ubicacion.capacidadUsada,
             ubicacion.zona,
-            List.of() // Lista vacía para evitar recursividad
+            List.of()
         );
     }
 

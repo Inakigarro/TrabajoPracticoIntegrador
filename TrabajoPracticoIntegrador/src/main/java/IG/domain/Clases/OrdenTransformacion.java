@@ -97,5 +97,25 @@ public class OrdenTransformacion {
             agregarDetalle(detalle);
         }
     }
-    //reenvasar
+
+    public void aprobar() {
+        if (this.estado != EstadosOrdenes.PENDIENTE) {
+            throw new IllegalStateException("Solo se puede aprobar una orden pendiente");
+        }
+        this.estado = EstadosOrdenes.APROBADO;
+    }
+
+    public void ejecutar() {
+        if (this.estado != EstadosOrdenes.APROBADO) {
+            throw new IllegalStateException("Solo se puede ejecutar una orden aprobada");
+        }
+        this.estado = EstadosOrdenes.PROCESO;
+    }
+
+    public void cancelar() {
+        if (this.estado == EstadosOrdenes.COMPLETADO || this.estado == EstadosOrdenes.CANCELADO) {
+            throw new IllegalStateException("No se puede cancelar una orden finalizada o ya cancelada");
+        }
+        this.estado = EstadosOrdenes.CANCELADO;
+    }
 }

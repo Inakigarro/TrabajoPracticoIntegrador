@@ -2,29 +2,36 @@ package IG.application.Dtos;
 
 import IG.application.Dtos.Producto.ProductoDto;
 import IG.application.Dtos.Ubicacion.UbicacionDto;
-import IG.domain.Clases.ProductoUbicacion;
+import IG.domain.Clases.Producto;
+import IG.domain.Clases.Ubicacion;
 
 public record ProductoUbicacionDto(
         Integer id,
+        Double stock,
         ProductoDto producto,
-        UbicacionDto ubicacion,
-        Double stockProductoUbicacion
+        UbicacionDto ubicacion
 ) {
-    public static ProductoUbicacionDto map(ProductoUbicacion prodUbi) {
+    public static ProductoUbicacionDto map(Producto producto, Ubicacion ubicacion, Double stock) {
         return new ProductoUbicacionDto(
-                prodUbi.getId(),
-                ProductoDto.map(prodUbi.getProducto()),
-                UbicacionDto.map(prodUbi.getUbicacion()),
-                prodUbi.getStockProductoUbicacion()
+                producto.getId(),
+                stock,
+                ProductoDto.map(producto),
+                UbicacionDto.map(ubicacion)
         );
     }
 
-    public static ProductoUbicacionDto map(ProductoUbicacionCache prodUbi) {
+    // ✅ MÉTODO QUE ESPERA LA VIEW - stockProductoUbicacion()
+    public Double stockProductoUbicacion() {
+        return this.stock;
+    }
+
+    // ✅ MÉTODO PARA ProductoUbicacion (entidad)
+    public static ProductoUbicacionDto map(IG.domain.Clases.ProductoUbicacion productoUbicacion) {
         return new ProductoUbicacionDto(
-                prodUbi.id,
-                ProductoDto.map(prodUbi.producto),
-                UbicacionDto.map(prodUbi.ubicacion),
-                prodUbi.stockProductoUbicacion
+                productoUbicacion.getId(),
+                productoUbicacion.getStock(),
+                ProductoDto.map(productoUbicacion.getProducto()),
+                UbicacionDto.map(productoUbicacion.getUbicacion())
         );
     }
 }

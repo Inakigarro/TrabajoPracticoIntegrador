@@ -289,8 +289,6 @@ public class OrdenTransformacionDAO {
 
             try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    // Si necesitás asignar un ID al detalle, podrías agregar un setId() en DetalleTransformacion
-                    // detalle.setId(generatedKeys.getInt(1));
                 }
             }
         } catch (SQLException ex) {
